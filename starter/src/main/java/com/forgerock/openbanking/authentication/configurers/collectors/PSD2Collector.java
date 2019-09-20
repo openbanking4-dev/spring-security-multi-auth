@@ -31,9 +31,6 @@ import java.util.stream.Collectors;
 
 @Slf4j
 public class PSD2Collector extends X509Collector {
-    private UsernameCollector usernameCollector;
-    private AuthoritiesCollector authoritiesCollector;
-
     @Builder
     public PSD2Collector(UsernameCollector usernameCollector, AuthoritiesCollector authoritiesCollector) {
         super(usernameCollector, certificatesChain -> {
@@ -58,7 +55,6 @@ public class PSD2Collector extends X509Collector {
             authorities.addAll(authoritiesCollector.getAuthorities(certificatesChain, null, null));
             return authorities;
         });
-
     }
 
     public interface AuthoritiesCollector {

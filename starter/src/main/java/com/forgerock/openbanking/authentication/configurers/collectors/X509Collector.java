@@ -57,11 +57,11 @@ public class X509Collector implements AuthCollector {
 
         if (RequestContextHolder.getRequestAttributes() == null) {
             log.warn("No request attributes available!");
-            return null;
+            return currentAuthentication;
         }
         if (request == null) {
             log.warn("No request received!");
-            return null;
+            return currentAuthentication;
         }
 
         X509Certificate[] certificatesChain = RequestUtils.extractCertificatesChain(request);
@@ -69,7 +69,7 @@ public class X509Collector implements AuthCollector {
         //Check if no client certificate received
         if (certificatesChain == null || certificatesChain.length == 0) {
             log.debug("No certificate received");
-            return null;
+            return currentAuthentication;
         }
 
         Set<GrantedAuthority> authorities = authoritiesCollector.getAuthorities(certificatesChain);
