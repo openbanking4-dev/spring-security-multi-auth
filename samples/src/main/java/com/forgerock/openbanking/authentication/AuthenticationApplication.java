@@ -1,13 +1,8 @@
 package com.forgerock.openbanking.authentication;
 
 import com.forgerock.cert.Psd2CertInfo;
-import com.forgerock.cert.eidas.EidasCertType;
-import com.forgerock.cert.exception.InvalidEidasCertType;
-import com.forgerock.cert.exception.InvalidPsd2EidasCertificate;
-import com.forgerock.cert.psd2.Psd2QcStatement;
 import com.forgerock.cert.psd2.RolesOfPsp;
 import com.forgerock.openbanking.authentication.configurers.MultiAuthenticationCollectorConfigurer;
-import com.forgerock.openbanking.authentication.configurers.PasswordLessUserNameAuthentication;
 import com.forgerock.openbanking.authentication.configurers.collectors.CustomJwtCookieCollector;
 import com.forgerock.openbanking.authentication.configurers.collectors.PSD2Collector;
 import com.forgerock.openbanking.authentication.configurers.collectors.StatelessAccessTokenCollector;
@@ -19,7 +14,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -34,12 +28,9 @@ import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.Principal;
 import java.security.cert.X509Certificate;
-import java.util.Collections;
 import java.util.HashSet;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @RestController
 @SpringBootApplication

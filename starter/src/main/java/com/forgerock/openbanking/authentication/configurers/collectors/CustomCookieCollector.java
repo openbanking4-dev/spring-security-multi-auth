@@ -4,7 +4,6 @@ import com.forgerock.openbanking.authentication.configurers.AuthCollector;
 import com.forgerock.openbanking.authentication.configurers.PasswordLessUserNameAuthentication;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;

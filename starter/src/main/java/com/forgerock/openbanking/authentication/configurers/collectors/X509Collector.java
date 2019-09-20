@@ -2,12 +2,8 @@ package com.forgerock.openbanking.authentication.configurers.collectors;
 
 import com.forgerock.openbanking.authentication.configurers.AuthCollector;
 import com.forgerock.openbanking.authentication.configurers.PasswordLessUserNameAuthentication;
-import com.forgerock.openbanking.authentication.model.CustomGrantType;
 import com.forgerock.openbanking.authentication.utils.RequestUtils;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -15,7 +11,6 @@ import org.springframework.web.context.request.RequestContextHolder;
 
 import javax.servlet.http.HttpServletRequest;
 import java.security.cert.X509Certificate;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
 
