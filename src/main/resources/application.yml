@@ -1,21 +1,5 @@
-spring:
-  security:
-    oauth2:
-        client:
-            # From OIDC app
-            clientId: 14f00235-07a6-4a76-a951-36bc8f7fac6f
-            clientSecret: I-psAxoHMsWkoSxEWrC2f4GDiFats-l2g_8kYcWyubNGqCPZ4EwMaB9kYigteyfOcuxNxz1UxANKYknss1X_5Q
-            # From Authorization Server's metadata
-            accessTokenUri: https://matls.as.aspsp.demo.forgerock.financial/oauth2/access_token
-            userAuthorizationUri: https://as.aspsp.demo.forgerock.financial/oauth2/authorize
-            clientAuthenticationScheme: form
-            scope: openid profile email
-        resourceserver:
-            jwt:
-                issuer-uri: https://as.aspsp.demo.forgerock.financial/oauth2/
+trace: true
 
-
-debug: true
 server:
     ssl:
         client-auth: WANT
@@ -24,6 +8,8 @@ server:
         trust-store-password: changeit
         key-store: classpath:keystores/keystore.jks
         key-store-password: changeit
+        self-signed:
+          ca-alias: obri-internal-ca
     port: 8443
 
 trust-store:
