@@ -7,6 +7,6 @@ public enum CustomGrantType implements GrantedAuthority {
 
     @Override
     public String getAuthority() {
-        return name();
+        return "CUSTOM_" + name();
     }
 }

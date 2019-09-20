@@ -41,10 +41,13 @@ public abstract class AccessTokenCollector<T> implements AuthCollector {
             log.trace("Token received", tokenSerialised);
             try {
                 T t = getTokenValidator().validate(tokenSerialised);
-                Object userName = currentAuthentication.getPrincipal();
                 Set<GrantedAuthority> authorities = getAuthoritiesCollector().getAuthorities(t);
                 authorities.addAll(currentAuthentication.getAuthorities());
-                return new PasswordLessUserNameAuthentication(userName, authorities);
+
+                PasswordLessUserNameAuthentication passwordLessUserNameAuthentication = new PasswordLessUserNameAuthentication(currentAuthentication.getName(), authorities);
+                passwordLessUserNameAuthentication.setAuthenticated(currentAuthentication.isAuthenticated());
+                return passwordLessUserNameAuthentication;
+
             } catch (HttpClientErrorException e) {
                 if (e.getStatusCode() == HttpStatus.UNAUTHORIZED || e.getStatusCode() == HttpStatus.FORBIDDEN) {
                     throw new BadCredentialsException("Invalid cookie");
@@ -56,7 +59,7 @@ public abstract class AccessTokenCollector<T> implements AuthCollector {
         } else {
             log.trace("No cookie found");
         }
-        return null;
+        return currentAuthentication;
     }
 
 

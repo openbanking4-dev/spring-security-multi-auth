@@ -28,17 +28,11 @@ public class AuthCollectorFilter extends GenericFilterBean {
     public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain) throws IOException, ServletException {
         HttpServletRequest request = (HttpServletRequest)req;
         HttpServletResponse response = (HttpServletResponse)res;
-        if (SecurityContextHolder.getContext().getAuthentication() == null) {
-            for (AuthCollector authCollector : authentificationCollectors) {
-                Authentication authentication = authCollector.collectAuthentication((HttpServletRequest) req);
-                if (authentication != null) {
-                    SecurityContextHolder.getContext().setAuthentication(authentication);
-                    break;
-                }
-            }
-        } else {
-            if (this.logger.isDebugEnabled()) {
-                this.logger.debug("SecurityContextHolder not populated with remember-me token, as it already contained: '" + SecurityContextHolder.getContext().getAuthentication() + "'");
+        for (AuthCollector authCollector : authentificationCollectors) {
+            Authentication authentication = authCollector.collectAuthentication((HttpServletRequest) req);
+            if (authentication != null) {
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+                break;
             }
         }
 

@@ -20,9 +20,6 @@ import java.util.Collections;
 import java.util.Set;
 
 @Slf4j
-@ToString
-@Builder
-@Data
 @AllArgsConstructor
 public class X509Collector implements AuthCollector {
 
@@ -51,7 +48,6 @@ public class X509Collector implements AuthCollector {
         }
 
         String username = usernameCollector.getUserName(certificatesChain);
-        Set<GrantedAuthority> authorities = authoritiesCollector.getAuthorities(certificatesChain);
 
         return new PasswordLessUserNameAuthentication(username, Collections.EMPTY_SET);
     }
@@ -77,9 +73,11 @@ public class X509Collector implements AuthCollector {
         }
 
         Set<GrantedAuthority> authorities = authoritiesCollector.getAuthorities(certificatesChain);
-        currentAuthentication.getAuthorities().add(authorities);
+        authorities.addAll(currentAuthentication.getAuthorities());
 
-        return currentAuthentication;
+        PasswordLessUserNameAuthentication passwordLessUserNameAuthentication = new PasswordLessUserNameAuthentication(currentAuthentication.getName(), authorities);
+        passwordLessUserNameAuthentication.setAuthenticated(currentAuthentication.isAuthenticated());
+        return passwordLessUserNameAuthentication;
     }
 
     public interface UsernameCollector {

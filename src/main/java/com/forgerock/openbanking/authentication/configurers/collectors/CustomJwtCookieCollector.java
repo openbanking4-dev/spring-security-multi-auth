@@ -15,19 +15,16 @@ import java.text.ParseException;
 
 @Slf4j
 @ToString
-@Builder
 @Getter
-@AllArgsConstructor
 public class CustomJwtCookieCollector extends CustomCookieCollector<JWT> {
 
-    private String issuerJwkUri;
-    private String issuerId;
-
-    private JWKSet jwkSet;
-
-    public CustomJwtCookieCollector() throws IOException, ParseException {
-        jwkSet = JWKSet.load(new URL(issuerJwkUri));
-        this.tokenValidator = tokenSerialised -> JWTParser.parse(tokenSerialised);
-        this.usernameCollector = token -> token.getJWTClaimsSet().getSubject();
+    @Builder
+    public CustomJwtCookieCollector(AuthoritiesCollector<JWT> authoritiesCollector, String cookieName) {
+        super(
+                tokenSerialised -> JWTParser.parse(tokenSerialised),
+                token -> token.getJWTClaimsSet().getSubject(),
+                authoritiesCollector,
+                cookieName
+        );
     }
 }

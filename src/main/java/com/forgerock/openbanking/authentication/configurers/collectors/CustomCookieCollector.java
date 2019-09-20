@@ -16,12 +16,12 @@ import org.springframework.web.client.HttpClientErrorException;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import java.text.ParseException;
+import java.util.Collections;
 import java.util.Set;
 
 @Slf4j
 @ToString
 @AllArgsConstructor
-@NoArgsConstructor
 @Data
 public abstract class CustomCookieCollector<T> implements AuthCollector {
 
@@ -40,8 +40,7 @@ public abstract class CustomCookieCollector<T> implements AuthCollector {
             try {
                 T t = getTokenValidator().validate(tokenSerialised);
                 String userName = getUsernameCollector().getUserName(t);
-                Set<GrantedAuthority> authorities = getAuthoritiesCollector().getAuthorities(t);
-                return new PasswordLessUserNameAuthentication(userName, authorities);
+                return new PasswordLessUserNameAuthentication(userName, Collections.EMPTY_SET);
             } catch (HttpClientErrorException e) {
                 if (e.getStatusCode() == HttpStatus.UNAUTHORIZED || e.getStatusCode() == HttpStatus.FORBIDDEN) {
                     throw new BadCredentialsException("Invalid cookie");
@@ -58,7 +57,7 @@ public abstract class CustomCookieCollector<T> implements AuthCollector {
 
     @Override
     public Authentication collectAuthorisation(HttpServletRequest req, Authentication currentAuthentication) {
-        return null;
+        return currentAuthentication;
     }
 
     private Cookie getCookie(HttpServletRequest request, String name) {
