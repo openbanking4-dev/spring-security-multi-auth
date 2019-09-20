@@ -11,14 +11,6 @@ import javax.servlet.http.HttpServletRequest;
 import java.security.cert.X509Certificate;
 
 public class RequestUtils {
-    public static X509Certificate extractCertificate(HttpServletRequest req) {
-        X509Certificate[] certs = (X509Certificate[]) req.getAttribute("javax.servlet.request.X509Certificate");
-        if (null != certs && certs.length > 0) {
-            return certs[0];
-        }
-        return null;
-    }
-
     public static X509Certificate[] extractCertificatesChain(HttpServletRequest req) {
         return (X509Certificate[]) req.getAttribute("javax.servlet.request.X509Certificate");
     }

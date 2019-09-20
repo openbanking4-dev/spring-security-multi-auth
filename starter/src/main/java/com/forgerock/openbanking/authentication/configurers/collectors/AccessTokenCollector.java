@@ -1,7 +1,7 @@
 package com.forgerock.openbanking.authentication.configurers.collectors;
 
 import com.forgerock.openbanking.authentication.configurers.AuthCollector;
-import com.forgerock.openbanking.authentication.configurers.PasswordLessUserNameAuthentication;
+import com.forgerock.openbanking.authentication.model.authentication.PasswordLessUserNameAuthentication;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

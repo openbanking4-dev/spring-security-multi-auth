@@ -7,8 +7,8 @@ import com.forgerock.openbanking.authentication.configurers.collectors.CustomJwt
 import com.forgerock.openbanking.authentication.configurers.collectors.PSD2Collector;
 import com.forgerock.openbanking.authentication.configurers.collectors.StatelessAccessTokenCollector;
 import com.forgerock.openbanking.authentication.configurers.collectors.X509Collector;
-import com.forgerock.openbanking.authentication.model.CustomGrantType;
-import com.forgerock.openbanking.authentication.model.PSD2GrantType;
+import com.forgerock.openbanking.authentication.model.granttypes.CustomGrantType;
+import com.forgerock.openbanking.authentication.model.granttypes.PSD2GrantType;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;

@@ -1,5 +1,6 @@
 package com.forgerock.openbanking.authentication.configurers;
 
+import com.forgerock.openbanking.authentication.model.authentication.PasswordLessUserNameAuthentication;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;

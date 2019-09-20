@@ -1,4 +1,4 @@
-package com.forgerock.openbanking.authentication.model;
+package com.forgerock.openbanking.authentication.model.granttypes;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

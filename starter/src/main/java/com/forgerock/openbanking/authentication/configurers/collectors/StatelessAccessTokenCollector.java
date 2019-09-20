@@ -1,6 +1,6 @@
 package com.forgerock.openbanking.authentication.configurers.collectors;
 
-import com.forgerock.openbanking.authentication.model.ScopeGrantType;
+import com.forgerock.openbanking.authentication.model.granttypes.ScopeGrantType;
 import com.nimbusds.jwt.JWT;
 import com.nimbusds.jwt.JWTParser;
 import lombok.Builder;
