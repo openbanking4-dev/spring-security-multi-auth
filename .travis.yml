@@ -15,6 +15,5 @@ branches:
   - master
 before_install:
 # Use auto-gen travis secrets to decrypt gpg key for signing jar
-- openssl aes-256-cbc -K $encrypted_c2185d117803_key -iv $encrypted_c2185d117803_iv
-  -in maven.asc.enc -out maven.asc -d
+- openssl aes-256-cbc -K $encrypted_4d41922eeb6f_key -iv $encrypted_4d41922eeb6f_iv -in maven.asc.enc -out maven.asc -d
 - gpg --import --passphrase ${GPG_PASSPHRASE} --batch maven.asc
