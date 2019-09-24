@@ -75,6 +75,40 @@
 		</dependencies>
 	</dependencyManagement>
 
+	<scm>
+		<connection>scm:git:https://github.com/ForgeRock/spring-security-multi-auth-collector.git</connection>
+		<developerConnection>scm:git:https://github.com/ForgeRock/spring-security-multi-auth-collector.git</developerConnection>
+		<url>https://github.com/ForgeRock/spring-security-multi-auth-collector.git</url>
+		<tag>HEAD</tag>
+	</scm>
+
+	<distributionManagement>
+		<snapshotRepository>
+			<id>ossrh</id>
+			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
+		</snapshotRepository>
+		<repository>
+			<id>ossrh</id>
+			<url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+		</repository>
+	</distributionManagement>
+
+	<licenses>
+		<license>
+			<name>CDDLv1.0</name>
+			<url>https://opensource.org/licenses/CDDL-1.0</url>
+		</license>
+	</licenses>
+
+	<developers>
+		<developer>
+			<name>Quentin Castel</name>
+			<email>quentin.castel@forgerock.com</email>
+			<organization>ForgeRock</organization>
+			<organizationUrl>http://www.forgerock.com</organizationUrl>
+		</developer>
+	</developers>
+
 	<build>
 		<pluginManagement>
 			<plugins>
