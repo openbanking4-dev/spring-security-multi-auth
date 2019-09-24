@@ -1,20 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ The contents of this file are subject to the terms of the Common Development and
-  ~  Distribution License (the License). You may not use this file except in compliance with the
-  ~  License.
-  ~
-  ~  You can obtain a copy of the License at https://forgerock.org/cddlv1-0/. See the License for the
-  ~  specific language governing permission and limitations under the License.
-  ~
-  ~  When distributing Covered Software, include this CDDL Header Notice in each file and include
-  ~  the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
-  ~  Header, with the fields enclosed by brackets [] replaced by your own identifying
-  ~  information: "Portions copyright [year] [name of copyright owner]".
-  ~
-  ~  Copyright 2019 ForgeRock AS.
-  -->
 
+    The contents of this file are subject to the terms of the Common Development and
+     Distribution License (the License). You may not use this file except in compliance with the
+     License.
+
+     You can obtain a copy of the License at https://forgerock.org/cddlv1-0/. See the License for the
+     specific language governing permission and limitations under the License.
+
+     When distributing Covered Software, include this CDDL Header Notice in each file and include
+     the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+     Header, with the fields enclosed by brackets [] replaced by your own identifying
+     information: "Portions copyright [year] [name of copyright owner]".
+
+     Copyright 2019 ForgeRock AS.
+
+-->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
@@ -27,9 +28,10 @@
 	<groupId>com.forgerock</groupId>
 	<artifactId>spring-security-multi-auth</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>authentication</name>
+	<name>spring-security-multi-auth</name>
 	<description>Spring security multi-authentication</description>
 	<packaging>pom</packaging>
+	<url>https://github.com/ForgeCloud/spring-security-multi-auth-collector</url>
 
     <modules>
 		<module>starter</module>
@@ -38,6 +40,7 @@
 
 	<properties>
 		<java.version>11</java.version>
+		<version.javadoc.plugin>3.0.1</version.javadoc.plugin>
 		<apache.httpmime.version>4.5.9</apache.httpmime.version>
 		<apache.httpasyncclient.version>4.1.4</apache.httpasyncclient.version>
 		<lombok.version>1.18.10</lombok.version>
@@ -107,33 +110,113 @@
 			<organizationUrl>http://www.forgerock.com</organizationUrl>
 		</developer>
 	</developers>
-
 	<build>
-		<pluginManagement>
-			<plugins>
-				<plugin>
-					<groupId>com.mycila</groupId>
-					<artifactId>license-maven-plugin</artifactId>
-					<version>3.0</version>
-					<configuration>
-						<header>file://${maven.multiModuleProjectDirectory}/legal/LICENSE.txt</header>
-						<includes>
-							<include>**/*.java</include>
-							<include>pom.xml</include>
-						</includes>
-					</configuration>
-					<executions>
-						<execution>
-							<phase>process-sources</phase>
-							<goals>
-								<goal>format</goal>
-								<goal>check</goal>
-							</goals>
-						</execution>
-					</executions>
-				</plugin>
-			</plugins>
-		</pluginManagement>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.8.1</version>
+				<inherited>true</inherited>
+				<configuration>
+					<source>${maven.compiler.source}</source>
+					<target>${maven.compiler.target}</target>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>${version.javadoc.plugin}</version>
+				<configuration>
+					<source>8</source>
+					<minmemory>128m</minmemory>
+					<maxmemory>1024m</maxmemory>
+					<quiet>false</quiet>
+				</configuration>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<artifactId>maven-release-plugin</artifactId>
+				<version>2.5.3</version>
+				<configuration>
+					<scmCommentPrefix>[ci skip]</scmCommentPrefix>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>com.mycila</groupId>
+				<artifactId>license-maven-plugin</artifactId>
+				<version>3.0</version>
+				<configuration>
+					<header>file://${maven.multiModuleProjectDirectory}/legal/LICENSE.txt</header>
+					<includes>
+						<include>**/*.java</include>
+						<include>pom.xml</include>
+					</includes>
+					<excludes>
+						<exclude>**/README</exclude>
+						<exclude>**/*sh</exclude>
+						<exclude>**/*txt</exclude>
+						<exclude>settings.xml</exclude>
+						<exclude>src/test/resources/**</exclude>
+						<exclude>src/main/resources/**</exclude>
+					</excludes>
+				</configuration>
+				<executions>
+					<execution>
+						<phase>process-sources</phase>
+						<goals>
+							<goal>format</goal>
+							<goal>check</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.sonatype.plugins</groupId>
+				<artifactId>nexus-staging-maven-plugin</artifactId>
+				<version>1.6.7</version>
+				<extensions>true</extensions>
+				<configuration>
+					<serverId>ossrh</serverId>
+					<nexusUrl>https://oss.sonatype.org/</nexusUrl>
+					<autoReleaseAfterClose>true</autoReleaseAfterClose>
+				</configuration>
+			</plugin>
+		</plugins>
 	</build>
+
+	<profiles>
+		<profile>
+			<id>travis</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-gpg-plugin</artifactId>
+						<version>1.6</version>
+						<configuration>
+							<passphrase>${env.GPG_PASSPHRASE}</passphrase>
+							<keyname>DA5A83E21839FB2F60811F8E56780DDF77F42B2C</keyname>
+						</configuration>
+						<executions>
+							<execution>
+								<id>sign-artifacts</id>
+								<phase>verify</phase>
+								<goals>
+									<goal>sign</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
 
 </project>
