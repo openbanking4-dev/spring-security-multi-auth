@@ -38,12 +38,12 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 public class StaticUserCollector implements AuthCollector {
 
-    private String username;
+    private UsernameCollector usernameCollector;
     private Set<GrantedAuthority> grantedAuthorities = Collections.EMPTY_SET;
 
     @Override
     public Authentication collectAuthentication(HttpServletRequest request) {
-        return new PasswordLessUserNameAuthentication(username, Collections.EMPTY_SET);
+        return new PasswordLessUserNameAuthentication(usernameCollector.getUserName(), Collections.EMPTY_SET);
     }
 
     @Override
@@ -56,4 +56,9 @@ public class StaticUserCollector implements AuthCollector {
         passwordLessUserNameAuthentication.setAuthenticated(currentAuthentication.isAuthenticated());
         return passwordLessUserNameAuthentication;
     }
+
+    public interface UsernameCollector {
+        String getUserName();
+    }
+
 }

@@ -1,5 +1,3 @@
-trace: true
-
 server:
     ssl:
         client-auth: WANT
