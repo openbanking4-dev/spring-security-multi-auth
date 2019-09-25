@@ -20,20 +20,20 @@
     <groupId>com.forgerock</groupId>
     <artifactId>spring-security-multi-auth-samples</artifactId>
     <packaging>jar</packaging>
-    <version>0.0.6</version>
+    <version>0.0.7-SNAPSHOT</version>
     <name>Samples</name>
 
     <parent>
         <groupId>com.forgerock</groupId>
         <artifactId>spring-security-multi-auth</artifactId>
-        <version>0.0.6</version>
+        <version>0.0.7-SNAPSHOT</version>
     </parent>
 
     <dependencies>
         <dependency>
             <groupId>com.forgerock</groupId>
             <artifactId>spring-security-multi-auth-starter</artifactId>
-            <version>0.0.6</version>
+            <version>0.0.7-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
