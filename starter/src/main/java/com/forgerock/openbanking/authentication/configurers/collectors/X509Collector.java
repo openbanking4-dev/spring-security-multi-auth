@@ -58,6 +58,9 @@ public class X509Collector implements AuthCollector {
         }
 
         String username = usernameCollector.getUserName(certificatesChain);
+        if (username == null) {
+            return null;
+        }
 
         return new PasswordLessUserNameAuthentication(username, Collections.EMPTY_SET);
     }
