@@ -38,7 +38,9 @@ public class PSD2Collector extends X509Collector {
             Set<GrantedAuthority> authorities = new HashSet<>();
             try {
                 Psd2CertInfo psd2CertInfo = new Psd2CertInfo(certificatesChain);
-                if (psd2CertInfo.getEidasCertType().isPresent() && psd2CertInfo.getEidasCertType().equals(EidasCertType.WEB)) {
+                if (psd2CertInfo.isPsd2Cert()
+                        && psd2CertInfo.getEidasCertType().isPresent()
+                        && psd2CertInfo.getEidasCertType().equals(EidasCertType.WEB)) {
 
                     //Map PSD2 roles
                     Optional<Psd2QcStatement> psd2QcStatementOpt = psd2CertInfo.getPsd2QCStatement();
