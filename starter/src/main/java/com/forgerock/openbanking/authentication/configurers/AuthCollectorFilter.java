@@ -45,34 +45,28 @@ public class AuthCollectorFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws ServletException, IOException {
 
-
-        if (SecurityContextHolder.getContext().getAuthentication() == null
-                || !SecurityContextHolder.getContext().getAuthentication().isAuthenticated()) {
-
-            for (AuthCollector authCollector : authentificationCollectors) {
-                Authentication authentication = authCollector.collectAuthentication(request);
-                if (authentication != null) {
-                    SecurityContextHolder.getContext().setAuthentication(authentication);
-                    break;
-                }
+        for (AuthCollector authCollector : authentificationCollectors) {
+            Authentication authentication = authCollector.collectAuthentication(request);
+            if (authentication != null) {
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+                break;
             }
-
-            Authentication currentAuthentication = SecurityContextHolder.getContext().getAuthentication();
-            if (currentAuthentication == null) {
-                currentAuthentication = new PasswordLessUserNameAuthentication("anonymous", Collections.EMPTY_SET);
-            } else {
-                currentAuthentication.setAuthenticated(true);
-            }
-
-            for (AuthCollector authCollector : authorizationCollectors) {
-                currentAuthentication = authCollector.collectAuthorisation(request, currentAuthentication);
-            }
-            if (currentAuthentication != null) {
-                SecurityContextHolder.getContext().setAuthentication(currentAuthentication);
-            }
-        } else {
-            log.debug("SecurityContextHolder not populated with remember-me token, as it already contained: '{}'", SecurityContextHolder.getContext().getAuthentication());
         }
+
+        Authentication currentAuthentication = SecurityContextHolder.getContext().getAuthentication();
+        if (currentAuthentication == null) {
+            currentAuthentication = new PasswordLessUserNameAuthentication("anonymous", Collections.EMPTY_SET);
+        } else {
+            currentAuthentication.setAuthenticated(true);
+        }
+
+        for (AuthCollector authCollector : authorizationCollectors) {
+            currentAuthentication = authCollector.collectAuthorisation(request, currentAuthentication);
+        }
+        if (currentAuthentication != null) {
+            SecurityContextHolder.getContext().setAuthentication(currentAuthentication);
+        }
+
         chain.doFilter(request, response);
     }
 

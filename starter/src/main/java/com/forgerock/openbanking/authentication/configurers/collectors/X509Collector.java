@@ -54,15 +54,7 @@ public class X509Collector implements AuthCollector {
             return null;
         }
 
-        X509Certificate[] certificatesChain;
-
-        if (collectFromHeader != null && request.getHeader(headerName) != null) {
-            String certificatesSerialised = request.getHeader(headerName);
-            log.debug("Found a certificate in the header '{}'", certificatesSerialised);
-            certificatesChain = collectFromHeader.parseCertificate(certificatesSerialised).toArray(new X509Certificate[0]);
-        } else {
-            certificatesChain = RequestUtils.extractCertificatesChain(request);
-        }
+        X509Certificate[] certificatesChain = getX509Certificates(request);
 
         //Check if no client certificate received
         if (certificatesChain == null || certificatesChain.length == 0) {
@@ -78,6 +70,19 @@ public class X509Collector implements AuthCollector {
         return new PasswordLessUserNameAuthentication(username, Collections.EMPTY_SET);
     }
 
+    private X509Certificate[] getX509Certificates(HttpServletRequest request) {
+        X509Certificate[] certificatesChain;
+
+        if (collectFromHeader != null && request.getHeader(headerName) != null) {
+            String certificatesSerialised = request.getHeader(headerName);
+            log.debug("Found a certificate in the header '{}'", certificatesSerialised);
+            certificatesChain = collectFromHeader.parseCertificate(certificatesSerialised).toArray(new X509Certificate[0]);
+        } else {
+            certificatesChain = RequestUtils.extractCertificatesChain(request);
+        }
+        return certificatesChain;
+    }
+
     @Override
     public Authentication collectAuthorisation(HttpServletRequest request, Authentication currentAuthentication) {
 
@@ -90,7 +95,7 @@ public class X509Collector implements AuthCollector {
             return currentAuthentication;
         }
 
-        X509Certificate[] certificatesChain = RequestUtils.extractCertificatesChain(request);
+        X509Certificate[] certificatesChain = getX509Certificates(request);
 
         //Check if no client certificate received
         if (certificatesChain == null || certificatesChain.length == 0) {
