@@ -21,6 +21,7 @@ import com.forgerock.cert.exception.InvalidEidasCertType;
 import com.forgerock.cert.exception.InvalidPsd2EidasCertificate;
 import com.forgerock.cert.psd2.Psd2QcStatement;
 import com.forgerock.cert.psd2.RolesOfPsp;
+import com.forgerock.openbanking.authentication.model.CertificateHeaderFormat;
 import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.GrantedAuthority;
@@ -33,7 +34,7 @@ import java.util.Set;
 @Slf4j
 public class PSD2Collector extends X509Collector {
     @Builder
-    public PSD2Collector(UsernameCollector usernameCollector, AuthoritiesCollector authoritiesCollector) {
+    public PSD2Collector(UsernameCollector usernameCollector, AuthoritiesCollector authoritiesCollector, CertificateHeaderFormat collectFromHeader, String headerName) {
         super(usernameCollector, certificatesChain -> {
             Set<GrantedAuthority> authorities = new HashSet<>();
             try {
@@ -57,7 +58,7 @@ public class PSD2Collector extends X509Collector {
 
             authorities.addAll(authoritiesCollector.getAuthorities(certificatesChain, null, null));
             return authorities;
-        });
+        }, collectFromHeader, headerName);
     }
 
     public interface AuthoritiesCollector {

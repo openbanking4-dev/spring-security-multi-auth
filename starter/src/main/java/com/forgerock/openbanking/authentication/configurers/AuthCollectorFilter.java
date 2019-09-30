@@ -20,7 +20,10 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.filter.GenericFilterBean;
+import org.springframework.web.filter.OncePerRequestFilter;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -34,37 +37,44 @@ import java.util.List;
 
 @Slf4j
 @AllArgsConstructor
-public class AuthCollectorFilter extends GenericFilterBean {
+public class AuthCollectorFilter extends OncePerRequestFilter {
 
     private List<AuthCollector> authentificationCollectors;
     private List<AuthCollector> authorizationCollectors;
 
     @Override
-    public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain) throws IOException, ServletException {
-        HttpServletRequest request = (HttpServletRequest)req;
-        HttpServletResponse response = (HttpServletResponse)res;
-        for (AuthCollector authCollector : authentificationCollectors) {
-            Authentication authentication = authCollector.collectAuthentication((HttpServletRequest) req);
-            if (authentication != null) {
-                SecurityContextHolder.getContext().setAuthentication(authentication);
-                break;
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws ServletException, IOException {
+
+
+        if (SecurityContextHolder.getContext().getAuthentication() == null
+                || !SecurityContextHolder.getContext().getAuthentication().isAuthenticated()) {
+
+            for (AuthCollector authCollector : authentificationCollectors) {
+                Authentication authentication = authCollector.collectAuthentication(request);
+                if (authentication != null) {
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                    break;
+                }
             }
-        }
 
-        Authentication currentAuthentication = SecurityContextHolder.getContext().getAuthentication();
-        if (currentAuthentication == null) {
-            currentAuthentication = new PasswordLessUserNameAuthentication("", Collections.EMPTY_SET);
+            Authentication currentAuthentication = SecurityContextHolder.getContext().getAuthentication();
+            if (currentAuthentication == null) {
+                currentAuthentication = new PasswordLessUserNameAuthentication("anonymous", Collections.EMPTY_SET);
+            } else {
+                currentAuthentication.setAuthenticated(true);
+            }
+
+            for (AuthCollector authCollector : authorizationCollectors) {
+                currentAuthentication = authCollector.collectAuthorisation(request, currentAuthentication);
+            }
+            if (currentAuthentication != null) {
+                SecurityContextHolder.getContext().setAuthentication(currentAuthentication);
+            }
         } else {
-            currentAuthentication.setAuthenticated(true);
-        }
-
-        for (AuthCollector authCollector : authorizationCollectors) {
-            currentAuthentication = authCollector.collectAuthorisation((HttpServletRequest) req, currentAuthentication);
-        }
-        if (currentAuthentication != null) {
-            SecurityContextHolder.getContext().setAuthentication(currentAuthentication);
+            log.debug("SecurityContextHolder not populated with remember-me token, as it already contained: '{}'", SecurityContextHolder.getContext().getAuthentication());
         }
         chain.doFilter(request, response);
     }
+
 
 }

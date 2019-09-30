@@ -56,7 +56,6 @@ public class MultiAuthenticationCollectorConfigurer<H extends HttpSecurityBuilde
 
     public void configure(H http) {
         AuthCollectorFilter filter = new AuthCollectorFilter(authentificationCollectors, authorizationCollectors);
-        filter = this.postProcess(filter);
         http.addFilterBefore(filter, BasicAuthenticationFilter.class);
         PreAuthenticatedAuthenticationProvider authenticationProvider = new PreAuthenticatedAuthenticationProvider();
         authenticationProvider.setPreAuthenticatedUserDetailsService(this.getAuthenticationUserDetailsService(http));

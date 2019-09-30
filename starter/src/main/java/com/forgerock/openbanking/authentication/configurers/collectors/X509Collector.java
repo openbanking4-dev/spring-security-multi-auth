@@ -16,6 +16,7 @@
 package com.forgerock.openbanking.authentication.configurers.collectors;
 
 import com.forgerock.openbanking.authentication.configurers.AuthCollector;
+import com.forgerock.openbanking.authentication.model.CertificateHeaderFormat;
 import com.forgerock.openbanking.authentication.model.authentication.PasswordLessUserNameAuthentication;
 import com.forgerock.openbanking.authentication.utils.RequestUtils;
 import lombok.AllArgsConstructor;
@@ -25,6 +26,8 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.web.context.request.RequestContextHolder;
 
 import javax.servlet.http.HttpServletRequest;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.security.cert.X509Certificate;
 import java.util.Collections;
 import java.util.Set;
@@ -36,9 +39,11 @@ public class X509Collector implements AuthCollector {
     private UsernameCollector usernameCollector;
     private AuthoritiesCollector authoritiesCollector;
 
+    private CertificateHeaderFormat collectFromHeader;
+    private String headerName;
+
     @Override
     public Authentication collectAuthentication(HttpServletRequest request) {
-
 
         if (RequestContextHolder.getRequestAttributes() == null) {
             log.warn("No request attributes available!");
@@ -49,7 +54,15 @@ public class X509Collector implements AuthCollector {
             return null;
         }
 
-        X509Certificate[] certificatesChain = RequestUtils.extractCertificatesChain(request);
+        X509Certificate[] certificatesChain;
+
+        if (collectFromHeader != null && request.getHeader(headerName) != null) {
+            String certificatesSerialised = request.getHeader(headerName);
+            log.debug("Found a certificate in the header '{}'", certificatesSerialised);
+            certificatesChain = collectFromHeader.parseCertificate(certificatesSerialised).toArray(new X509Certificate[0]);
+        } else {
+            certificatesChain = RequestUtils.extractCertificatesChain(request);
+        }
 
         //Check if no client certificate received
         if (certificatesChain == null || certificatesChain.length == 0) {
