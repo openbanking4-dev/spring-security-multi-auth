@@ -44,7 +44,7 @@
 		<apache.httpasyncclient.version>4.1.4</apache.httpasyncclient.version>
 		<lombok.version>1.18.10</lombok.version>
 		<nimbusds.version>7.3</nimbusds.version>
-		<eidas.sdk.version>1.11</eidas.sdk.version>
+		<eidas.sdk.version>1.12</eidas.sdk.version>
 	</properties>
 
 	<dependencyManagement>
