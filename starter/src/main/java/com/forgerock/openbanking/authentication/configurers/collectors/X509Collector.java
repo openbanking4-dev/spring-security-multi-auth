@@ -18,6 +18,7 @@ package com.forgerock.openbanking.authentication.configurers.collectors;
 import com.forgerock.openbanking.authentication.configurers.AuthCollector;
 import com.forgerock.openbanking.authentication.model.CertificateHeaderFormat;
 import com.forgerock.openbanking.authentication.model.authentication.PasswordLessUserNameAuthentication;
+import com.forgerock.openbanking.authentication.model.authentication.X509Authentication;
 import com.forgerock.openbanking.authentication.utils.RequestUtils;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,8 +27,6 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.web.context.request.RequestContextHolder;
 
 import javax.servlet.http.HttpServletRequest;
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
 import java.security.cert.X509Certificate;
 import java.util.Collections;
 import java.util.Set;
@@ -106,9 +105,13 @@ public class X509Collector implements AuthCollector {
         Set<GrantedAuthority> authorities = authoritiesCollector.getAuthorities(certificatesChain);
         authorities.addAll(currentAuthentication.getAuthorities());
 
-        PasswordLessUserNameAuthentication passwordLessUserNameAuthentication = new PasswordLessUserNameAuthentication(currentAuthentication.getName(), authorities);
-        passwordLessUserNameAuthentication.setAuthenticated(currentAuthentication.isAuthenticated());
-        return passwordLessUserNameAuthentication;
+        return createAuthentication(currentAuthentication, certificatesChain, authorities);
+    }
+
+    protected Authentication createAuthentication(Authentication currentAuthentication, X509Certificate[] certificatesChain, Set<GrantedAuthority> authorities) {
+        X509Authentication x509Authentication = new X509Authentication(currentAuthentication.getName(), authorities, certificatesChain);
+        x509Authentication.setAuthenticated(currentAuthentication.isAuthenticated());
+        return x509Authentication;
     }
 
     public interface UsernameCollector {
