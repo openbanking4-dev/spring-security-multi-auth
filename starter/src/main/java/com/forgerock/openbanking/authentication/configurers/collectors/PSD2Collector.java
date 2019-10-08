@@ -22,8 +22,10 @@ import com.forgerock.cert.exception.InvalidPsd2EidasCertificate;
 import com.forgerock.cert.psd2.Psd2QcStatement;
 import com.forgerock.cert.psd2.RolesOfPsp;
 import com.forgerock.openbanking.authentication.model.CertificateHeaderFormat;
+import com.forgerock.openbanking.authentication.model.authentication.PSD2Authentication;
 import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 
 import java.security.cert.X509Certificate;
@@ -41,7 +43,7 @@ public class PSD2Collector extends X509Collector {
                 Psd2CertInfo psd2CertInfo = new Psd2CertInfo(certificatesChain);
                 if (psd2CertInfo.isPsd2Cert()
                         && psd2CertInfo.getEidasCertType().isPresent()
-                        && psd2CertInfo.getEidasCertType().equals(EidasCertType.WEB)) {
+                        && psd2CertInfo.getEidasCertType().get().equals(EidasCertType.WEB)) {
 
                     //Map PSD2 roles
                     Optional<Psd2QcStatement> psd2QcStatementOpt = psd2CertInfo.getPsd2QCStatement();
@@ -59,6 +61,25 @@ public class PSD2Collector extends X509Collector {
             authorities.addAll(authoritiesCollector.getAuthorities(certificatesChain, null, null));
             return authorities;
         }, collectFromHeader, headerName);
+    }
+
+
+    @Override
+    protected Authentication createAuthentication(Authentication currentAuthentication, X509Certificate[] certificatesChain, Set<GrantedAuthority> authorities) {
+        try {
+            Psd2CertInfo psd2CertInfo = new Psd2CertInfo(certificatesChain);
+
+            if (psd2CertInfo.isPsd2Cert()
+                    && psd2CertInfo.getEidasCertType().isPresent()
+                    && psd2CertInfo.getEidasCertType().get().equals(EidasCertType.WEB)) {
+
+            }
+            PSD2Authentication psd2Authentication = new PSD2Authentication(currentAuthentication.getName(), authorities, certificatesChain, psd2CertInfo);
+            psd2Authentication.setAuthenticated(currentAuthentication.isAuthenticated());
+            return psd2Authentication;
+        } catch (InvalidPsd2EidasCertificate | InvalidEidasCertType invalidPsd2EidasCertificate) {
+        }
+        return super.createAuthentication(currentAuthentication, certificatesChain, authorities);
     }
 
     public interface AuthoritiesCollector {
