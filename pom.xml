@@ -26,7 +26,7 @@
 	</parent>
 	<groupId>com.forgerock</groupId>
 	<artifactId>spring-security-multi-auth</artifactId>
-	<version>0.0.18</version>
+	<version>0.0.19-SNAPSHOT</version>
 	<name>spring-security-multi-auth</name>
 	<description>Spring security multi-authentication</description>
 	<packaging>pom</packaging>
@@ -81,7 +81,7 @@
 		<connection>scm:git:https://github.com/ForgeRock/spring-security-multi-auth-collector.git</connection>
 		<developerConnection>scm:git:https://github.com/ForgeRock/spring-security-multi-auth-collector.git</developerConnection>
 		<url>https://github.com/ForgeRock/spring-security-multi-auth-collector.git</url>
-	  <tag>spring-security-multi-auth-0.0.18</tag>
+	  <tag>HEAD</tag>
   </scm>
 
 	<distributionManagement>
