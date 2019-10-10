@@ -15,24 +15,17 @@
  */
 package com.forgerock.openbanking.authentication.configurers;
 
-import com.forgerock.openbanking.authentication.model.authentication.PasswordLessUserNameAuthentication;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.web.filter.GenericFilterBean;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.Collections;
 import java.util.List;
 
 @Slf4j
@@ -44,21 +37,20 @@ public class AuthCollectorFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws ServletException, IOException {
-
+        Authentication currentAuthentication = null;
         for (AuthCollector authCollector : authentificationCollectors) {
-            Authentication authentication = authCollector.collectAuthentication(request);
-            if (authentication != null) {
-                SecurityContextHolder.getContext().setAuthentication(authentication);
+            currentAuthentication = authCollector.collectAuthentication(request);
+            if (currentAuthentication != null) {
                 break;
             }
         }
 
-        Authentication currentAuthentication = SecurityContextHolder.getContext().getAuthentication();
         if (currentAuthentication == null) {
-            currentAuthentication = new PasswordLessUserNameAuthentication("anonymous", Collections.EMPTY_SET);
-        } else {
-            currentAuthentication.setAuthenticated(true);
+            chain.doFilter(request, response);
+            return;
         }
+
+        currentAuthentication.setAuthenticated(true);
 
         for (AuthCollector authCollector : authorizationCollectors) {
             currentAuthentication = authCollector.collectAuthorisation(request, currentAuthentication);
