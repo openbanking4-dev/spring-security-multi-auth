@@ -85,15 +85,39 @@
   </scm>
 
 	<distributionManagement>
-		<snapshotRepository>
+		<repository>
+			<id>forgerock-private-releases</id>
+			<name>ForgeRock Private Releases Repository</name>
+			<url>http://maven.forgerock.org/repo/private-releases</url>
+		</repository>
+<!--		<snapshotRepository>
 			<id>ossrh</id>
 			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
 		</snapshotRepository>
 		<repository>
 			<id>ossrh</id>
 			<url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-		</repository>
+		</repository>-->
 	</distributionManagement>
+
+	<repositories>
+		<repository>
+			<id>forgerock-private-releases</id>
+			<name>ForgeRock Private Releases Repository</name>
+			<url>http://maven.forgerock.org/repo/private-releases</url>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+			<releases>
+				<enabled>true</enabled>
+			</releases>
+		</repository>
+		<repository>
+			<id>forgerock-private-releases</id>
+			<name>ForgeRock Private Releases Repository</name>
+			<url>http://maven.forgerock.org/repo/private-releases</url>
+		</repository>
+	</repositories>
 
 	<licenses>
 		<license>
