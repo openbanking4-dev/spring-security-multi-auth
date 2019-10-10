@@ -31,6 +31,7 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import java.text.ParseException;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 
 @Slf4j
@@ -70,8 +71,28 @@ public abstract class CustomCookieCollector<T> implements AuthCollector {
     }
 
     @Override
-    public Authentication collectAuthorisation(HttpServletRequest req, Authentication currentAuthentication) {
-        return currentAuthentication;
+    public Authentication collectAuthorisation(HttpServletRequest request, Authentication currentAuthentication) {
+        Set<GrantedAuthority> authorities = new HashSet<>();
+        Cookie cookie = getCookie(request, cookieName);
+        if (cookie != null) {
+            String tokenSerialised = cookie.getValue();
+            log.trace("Token received", tokenSerialised);
+            try {
+                T t = getTokenValidator().validate(tokenSerialised);
+                authorities.addAll(authoritiesCollector.getAuthorities(t));
+            } catch (HttpClientErrorException e) {
+                if (e.getStatusCode() == HttpStatus.UNAUTHORIZED || e.getStatusCode() == HttpStatus.FORBIDDEN) {
+                    throw new BadCredentialsException("Invalid cookie");
+                }
+                throw e;
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+        } else {
+            log.trace("No cookie found");
+        }
+        authorities.addAll(currentAuthentication.getAuthorities());
+        return new PasswordLessUserNameAuthentication(currentAuthentication.getName(), authorities);
     }
 
     private Cookie getCookie(HttpServletRequest request, String name) {
