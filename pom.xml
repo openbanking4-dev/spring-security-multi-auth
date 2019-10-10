@@ -112,11 +112,6 @@
 				<enabled>true</enabled>
 			</releases>
 		</repository>
-		<repository>
-			<id>forgerock-private-releases</id>
-			<name>ForgeRock Private Releases Repository</name>
-			<url>http://maven.forgerock.org/repo/private-releases</url>
-		</repository>
 	</repositories>
 
 	<licenses>
