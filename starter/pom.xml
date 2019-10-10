@@ -25,7 +25,7 @@
     <parent>
         <groupId>com.forgerock</groupId>
         <artifactId>spring-security-multi-auth</artifactId>
-        <version>0.0.30-SNAPSHOT</version>
+        <version>0.0.30</version>
     </parent>
 
     <dependencies>
