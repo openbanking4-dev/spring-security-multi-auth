@@ -92,7 +92,9 @@ public abstract class CustomCookieCollector<T> implements AuthCollector {
             log.trace("No cookie found");
         }
         authorities.addAll(currentAuthentication.getAuthorities());
-        return new PasswordLessUserNameAuthentication(currentAuthentication.getName(), authorities);
+        PasswordLessUserNameAuthentication passwordLessUserNameAuthentication = new PasswordLessUserNameAuthentication(currentAuthentication.getName(), authorities);
+        passwordLessUserNameAuthentication.setAuthenticated(currentAuthentication.isAuthenticated());
+        return passwordLessUserNameAuthentication;
     }
 
     private Cookie getCookie(HttpServletRequest request, String name) {
