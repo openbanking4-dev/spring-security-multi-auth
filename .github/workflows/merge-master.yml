@@ -48,8 +48,14 @@ jobs:
         maven-repo-server-id: bintray-quentincastel-openbanking4.dev
         maven-repo-server-username: quentincastel86
         maven-repo-server-password: ${{ secrets.PRIVATE_REPO_PASSWORD }}
+
+        gpg-enabled: "true"
+        gpg-key-id: ${{ secrets.GITHUB_GPG_KEY_ID }}
+        gpg-key: ${{ secrets.GITHUB_GPG_KEY }}
+
         git-release-bot-name: "bot"
         git-release-bot-email: "bot@openbanking4.dev"
+
         access-token: ${{ secrets.BOT_GITHUB_REPO_ACCESS_TOKEN }}
 
     - name: Enable "include administrators" branch protection
