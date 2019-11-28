@@ -19,23 +19,38 @@ jobs:
       uses: qcastel/github-actions-maven-cmd@master
       with:
         maven-args: "clean install"
+
+    - name: Create Package
+      uses: benjefferies/create-bintray-package@master
+      with:
+        bintray-user: benjefferies
+        bintray-token: ${{ secrets.BINTRAY_ACCESS_TOKEN }}
+        owner: openbanking4.dev
+        repo: openbanking4.dev
+        package-name: spring-security-multi-auth
+        package-description: Allowing multiple authentication and authorisation provider on Spring security
+        package-url: https://github.com/openbanking4-dev/spring-security-multi-auth
+        package-license: Apache 2.0
     - name: Temporarily disable "include administrators" branch protection
       uses: benjefferies/branch-protection-bot@master
       if: always()
       with:
-        access-token: ${{ secrets.ACCESS_TOKEN }}
+        access-token: ${{ secrets.BOT_GITHUB_REPO_ACCESS_TOKEN }}
         owner: qcastel
         repo: spring-security-multi-auth
     - name: Release
       uses: qcastel/github-actions-maven-release@master
       with:
-        git-release-bot-name: "release-bot"
-        git-release-bot-email: "release-bot@openbanking4.dev"
-        access-token: ${{ secrets.ACCESS_TOKEN }}
+        maven-repo-server-id: bintray-openbanking4.dev-openbanking4.dev
+        maven-repo-server-username: ${{ secrets.PRIVATE_REPO_USER }}
+        maven-repo-server-password: ${{ secrets.PRIVATE_REPO_PASSWORD }}
+        git-release-bot-name: "bot"
+        git-release-bot-email: "bot@openbanking4.dev"
+        access-token: ${{ secrets.BOT_GITHUB_REPO_ACCESS_TOKEN }}
     - name: Enable "include administrators" branch protection
       uses: benjefferies/branch-protection-bot@master
       if: always()
       with:
-        access-token: ${{ secrets.ACCESS_TOKEN }}
+        access-token: ${{ secrets.BOT_GITHUB_REPO_ACCESS_TOKEN }}
         owner: qcastel
         repo: spring-security-multi-auth
