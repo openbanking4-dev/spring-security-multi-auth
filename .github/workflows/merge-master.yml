@@ -27,7 +27,7 @@ jobs:
       with:
         bintray-user: quentincastel86
         bintray-token: ${{ secrets.BINTRAY_ACCESS_TOKEN }}
-        owner: openbanking4.dev
+        owner: openbanking4-dev
         repo: spring-security-multi-auth
         package-name: spring-security-multi-auth
         package-description: Allowing multiple authentication and authorisation provider on Spring security
