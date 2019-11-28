@@ -1,0 +1,39 @@
+name: Deploy
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Check Copyright	
+      uses: qcastel/github-actions-maven-cmd@master
+      with:
+        maven-args: "license:check"
+    - name: Build and Test	
+      uses: qcastel/github-actions-maven-cmd@master
+      with:
+        maven-args: "clean install"
+    - name: Temporarily disable "include administrators" branch protection
+      uses: benjefferies/branch-protection-bot@master
+      if: always()
+      with:
+        access-token: ${{ secrets.ACCESS_TOKEN }}
+        owner: qcastel
+        repo: spring-security-multi-auth
+    - name: Release
+      uses: qcastel/github-actions-maven-release@master
+      with:
+        release-branch-name: "master"
+        git-release-bot-name: "release-bot"
+        git-release-bot-email: "release-bot@openbanking4.dev"
+        access-token: ${{ secrets.ACCESS_TOKEN }}
+    - name: Enable "include administrators" branch protection
+      uses: benjefferies/branch-protection-bot@master
+      if: always()
+      with:
+        access-token: ${{ secrets.ACCESS_TOKEN }}
+        owner: qcastel
+        repo: spring-security-multi-auth

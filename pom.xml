@@ -18,19 +18,21 @@
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
+
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
 		<version>2.1.5.RELEASE</version>
 		<relativePath /> <!-- lookup parent from repository -->
 	</parent>
+
 	<groupId>com.forgerock</groupId>
 	<artifactId>spring-security-multi-auth</artifactId>
 	<version>0.0.31-SNAPSHOT</version>
 	<name>spring-security-multi-auth</name>
 	<description>Spring security multi-authentication</description>
 	<packaging>pom</packaging>
-	<url>https://github.com/ForgeCloud/spring-security-multi-auth-collector</url>
+	<url>https://github.com/qcastel/spring-security-multi-auth</url>
 
     <modules>
 		<module>starter</module>
@@ -78,11 +80,11 @@
 	</dependencyManagement>
 
 	<scm>
-		<connection>scm:git:https://github.com/ForgeRock/spring-security-multi-auth-collector.git</connection>
-		<developerConnection>scm:git:https://github.com/ForgeRock/spring-security-multi-auth-collector.git</developerConnection>
-		<url>https://github.com/ForgeRock/spring-security-multi-auth-collector.git</url>
-	  <tag>HEAD</tag>
-  </scm>
+		<connection>scm:git:https://github.com/qcastel/spring-security-multi-auth.git</connection>
+		<developerConnection>scm:git:https://github.com/qcastel/spring-security-multi-auth.git</developerConnection>
+		<url>https://github.com/qcastel/spring-security-multi-auth.git</url>
+	  	<tag>HEAD</tag>
+  	</scm>
 
 	<distributionManagement>
 		<repository>
@@ -90,14 +92,6 @@
 			<name>ForgeRock Private Releases Repository</name>
 			<url>http://maven.forgerock.org/repo/private-releases</url>
 		</repository>
-<!--		<snapshotRepository>
-			<id>ossrh</id>
-			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
-		</snapshotRepository>
-		<repository>
-			<id>ossrh</id>
-			<url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-		</repository>-->
 	</distributionManagement>
 
 	<repositories>
@@ -116,19 +110,17 @@
 
 	<licenses>
 		<license>
-			<name>CDDLv1.0</name>
-			<url>https://opensource.org/licenses/CDDL-1.0</url>
+			<name>Apache 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0</url>
 		</license>
 	</licenses>
 
 	<developers>
 		<developer>
 			<name>Quentin Castel</name>
-			<email>quentin.castel@forgerock.com</email>
-			<organization>ForgeRock</organization>
-			<organizationUrl>http://www.forgerock.com</organizationUrl>
 		</developer>
 	</developers>
+
 	<build>
 		<plugins>
 			<plugin>
@@ -178,46 +170,6 @@
 					</execution>
 				</executions>
 			</plugin>
-			<!--<plugin>
-				<groupId>org.sonatype.plugins</groupId>
-				<artifactId>nexus-staging-maven-plugin</artifactId>
-				<version>1.6.7</version>
-				<extensions>true</extensions>
-				<configuration>
-					<serverId>ossrh</serverId>
-					<nexusUrl>https://oss.sonatype.org/</nexusUrl>
-					<autoReleaseAfterClose>true</autoReleaseAfterClose>
-				</configuration>
-			</plugin>-->
 		</plugins>
 	</build>
-
-	<profiles>
-		<profile>
-			<id>travis</id>
-			<build>
-				<plugins>
-					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-gpg-plugin</artifactId>
-						<version>1.6</version>
-						<configuration>
-							<passphrase>${env.GPG_PASSPHRASE}</passphrase>
-							<keyname>DA5A83E21839FB2F60811F8E56780DDF77F42B2C</keyname>
-						</configuration>
-						<executions>
-							<execution>
-								<id>sign-artifacts</id>
-								<phase>verify</phase>
-								<goals>
-									<goal>sign</goal>
-								</goals>
-							</execution>
-						</executions>
-					</plugin>
-				</plugins>
-			</build>
-		</profile>
-	</profiles>
-
 </project>
