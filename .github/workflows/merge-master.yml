@@ -40,6 +40,7 @@ jobs:
       with:
         access-token: ${{ secrets.BOT_GITHUB_REPO_ACCESS_TOKEN }}
         owner: openbanking4-dev
+        enforce_admins: false
         repo: spring-security-multi-auth
 
     - name: Release
