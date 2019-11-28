@@ -85,9 +85,9 @@
 	</dependencyManagement>
 
 	<scm>
-		<connection>scm:git:https://github.com/qcastel/spring-security-multi-auth.git</connection>
-		<developerConnection>scm:git:https://github.com/qcastel/spring-security-multi-auth.git</developerConnection>
-		<url>https://github.com/qcastel/spring-security-multi-auth.git</url>
+		<connection>scm:git:https://github.com/openbanking4-dev/spring-security-multi-auth.git</connection>
+		<developerConnection>scm:git:https://github.com/openbanking4-dev/spring-security-multi-auth.git</developerConnection>
+		<url>https://github.com/openbanking4-dev/spring-security-multi-auth.git</url>
 	  	<tag>HEAD</tag>
   	</scm>
 
