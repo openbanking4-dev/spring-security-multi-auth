@@ -95,7 +95,7 @@
 		<repository>
 			<id>bintray-quentincastel-openbanking4.dev</id>
 			<name>OpenBanking4.dev Releases Repository</name>
-			<url>https://api.bintray.com/maven/openbanking4-dev/openbanking4.dev/spring-security-multi-auth/;publish=1</url>
+			<url>https://api.bintray.com/maven/openbanking4-dev/openbanking4-dev/spring-security-multi-auth/;publish=1</url>
 		</repository>
 	</distributionManagement>
 
