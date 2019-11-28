@@ -40,6 +40,7 @@ jobs:
       with:
         access-token: ${{ secrets.BOT_GITHUB_REPO_ACCESS_TOKEN }}
         owner: openbanking4-dev
+        enforce_admins: false
         repo: spring-security-multi-auth
 
     - name: Release
@@ -53,7 +54,7 @@ jobs:
         gpg-key-id: ${{ secrets.GITHUB_GPG_KEY_ID }}
         gpg-key: ${{ secrets.GITHUB_GPG_KEY }}
 
-        git-release-bot-name: "bot"
+        git-release-bot-name: "bot-openbanking4-dev"
         git-release-bot-email: "bot@openbanking4.dev"
 
         access-token: ${{ secrets.BOT_GITHUB_REPO_ACCESS_TOKEN }}
