@@ -50,7 +50,7 @@
 		<apache.httpmime.version>4.5.9</apache.httpmime.version>
 		<apache.httpasyncclient.version>4.1.4</apache.httpasyncclient.version>
 		<lombok.version>1.18.10</lombok.version>
-		<nimbusds.version>7.3</nimbusds.version>
+		<nimbusds.version>7.9</nimbusds.version>
 		<eidas.sdk.version>1.12</eidas.sdk.version>
 	</properties>
 
