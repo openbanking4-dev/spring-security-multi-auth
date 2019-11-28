@@ -1,8 +1,6 @@
 Spring security multi-auth 
 ========================
 
-
-
 # Motivation of this project
 
 Spring security offers authentication configurer by default, like X509, rememberMe, etc.
