@@ -11,10 +11,12 @@ jobs:
 
     steps:
     - uses: actions/checkout@v1
+
     - name: Check Copyright	
       uses: qcastel/github-actions-maven-cmd@master
       with:
         maven-args: "license:check"
+
     - name: Build and Test	
       uses: qcastel/github-actions-maven-cmd@master
       with:
@@ -23,34 +25,37 @@ jobs:
     - name: Create Package
       uses: benjefferies/create-bintray-package@master
       with:
-        bintray-user: benjefferies
+        bintray-user: quentincastel86
         bintray-token: ${{ secrets.BINTRAY_ACCESS_TOKEN }}
         owner: openbanking4.dev
-        repo: openbanking4.dev
+        repo: spring-security-multi-auth
         package-name: spring-security-multi-auth
         package-description: Allowing multiple authentication and authorisation provider on Spring security
         package-url: https://github.com/openbanking4-dev/spring-security-multi-auth
         package-license: Apache 2.0
+
     - name: Temporarily disable "include administrators" branch protection
       uses: benjefferies/branch-protection-bot@master
       if: always()
       with:
         access-token: ${{ secrets.BOT_GITHUB_REPO_ACCESS_TOKEN }}
-        owner: qcastel
+        owner: openbanking4-dev
         repo: spring-security-multi-auth
+
     - name: Release
       uses: qcastel/github-actions-maven-release@master
       with:
-        maven-repo-server-id: bintray-openbanking4.dev-openbanking4.dev
+        maven-repo-server-id: bintray-quentincastel-openbanking4.dev
         maven-repo-server-username: ${{ secrets.PRIVATE_REPO_USER }}
         maven-repo-server-password: ${{ secrets.PRIVATE_REPO_PASSWORD }}
         git-release-bot-name: "bot"
         git-release-bot-email: "bot@openbanking4.dev"
         access-token: ${{ secrets.BOT_GITHUB_REPO_ACCESS_TOKEN }}
+
     - name: Enable "include administrators" branch protection
       uses: benjefferies/branch-protection-bot@master
       if: always()
       with:
         access-token: ${{ secrets.BOT_GITHUB_REPO_ACCESS_TOKEN }}
-        owner: qcastel
+        owner: openbanking4-dev
         repo: spring-security-multi-auth
