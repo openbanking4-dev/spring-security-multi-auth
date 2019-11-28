@@ -1,5 +1,3 @@
-[![Build Status](https://travis-ci.org/ForgeRock/spring-security-multi-auth-collector.svg?branch=master)](https://travis-ci.org/ForgeRock/spring-security-multi-auth-collector)
-
 Spring security multi-auth 
 ========================
 
