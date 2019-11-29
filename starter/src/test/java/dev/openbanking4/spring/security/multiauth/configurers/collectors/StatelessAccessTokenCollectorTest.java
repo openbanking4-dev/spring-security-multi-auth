@@ -52,9 +52,10 @@ public class StatelessAccessTokenCollectorTest {
 
     @Before
     public void setUp() {
-        this.statelessAccessTokenCollector = new StatelessAccessTokenCollector(
-                token -> JWTParser.parse(token)
-        );
+        this.statelessAccessTokenCollector = StatelessAccessTokenCollector.builder()
+                .collectorName("stateless-access-token-for-test")
+                .tokenValidator(token -> JWTParser.parse(token))
+                .build();
     }
 
     @Test

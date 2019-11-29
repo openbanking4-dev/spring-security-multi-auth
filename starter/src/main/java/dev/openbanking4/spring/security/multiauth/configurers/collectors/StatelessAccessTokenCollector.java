@@ -36,10 +36,14 @@ import java.util.stream.Collectors;
 public class StatelessAccessTokenCollector extends AccessTokenCollector<JWT> {
 
     @Builder
-    public StatelessAccessTokenCollector(TokenValidator<JWT> tokenValidator) {
-
+    public StatelessAccessTokenCollector(
+            String collectorName,
+            TokenValidator<JWT> tokenValidator
+    ) {
+        this.collectorName = collectorName;
         this.authoritiesCollector = token -> {
             if (token.getJWTClaimsSet().getStringListClaim("scope") == null) {
+                log.trace("No claim 'scope' founds in the access token");
                 return Collections.EMPTY_SET;
             }
             return token.getJWTClaimsSet().getStringListClaim("scope")

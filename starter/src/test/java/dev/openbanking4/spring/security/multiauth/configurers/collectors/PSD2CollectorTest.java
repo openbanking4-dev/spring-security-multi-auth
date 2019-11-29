@@ -89,16 +89,18 @@ public class PSD2CollectorTest {
     @Before
     public void setUp() {
 
-        this.psd2Collector = new PSD2Collector(
-                certificatesChain -> certificatesChain[0].getSubjectDN().getName(),
-                (certificatesChain, psd2CertInfo, roles) -> {
+        this.psd2Collector = PSD2Collector.psd2Builder()
+                .collectorName("psd2-for-test")
+                .usernameCollector(certificatesChain -> certificatesChain[0].getSubjectDN().getName())
+                .authoritiesCollector((certificatesChain, psd2CertInfo, roles) -> {
                     if (roles == null) {
                         return Collections.EMPTY_SET;
                     }
                     return roles.getRolesOfPsp().stream().map(r -> new PSD2GrantType(r)).collect(Collectors.toSet());
-                },
-                CertificateHeaderFormat.PEM,
-                headerName);
+                })
+                .collectFromHeader(CertificateHeaderFormat.PEM)
+                .headerName(headerName)
+                .build();
     }
 
     @Test

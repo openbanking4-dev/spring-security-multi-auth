@@ -37,30 +37,39 @@ import java.util.List;
 @AllArgsConstructor
 public class AuthCollectorFilter extends OncePerRequestFilter {
 
-    private List<AuthCollector> authentificationCollectors;
+    private List<AuthCollector> authenticationCollectors;
     private List<AuthCollector> authorizationCollectors;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws ServletException, IOException {
         Authentication currentAuthentication = null;
-        for (AuthCollector authCollector : authentificationCollectors) {
+        log.trace("Going through all the collectors to authenticate the request, in the order of setup");
+        for (AuthCollector authCollector : authenticationCollectors) {
+            log.trace("Collector name: '{}'", authCollector.collectorName());
             currentAuthentication = authCollector.collectAuthentication(request);
             if (currentAuthentication != null) {
+                log.trace("Collector founds an authentication, skip next collectors");
                 break;
+            } else {
+                log.trace("Collector didn't managed to find an authentication");
             }
         }
 
         if (currentAuthentication == null) {
+            log.trace("No authentication founds by any of the collectors");
             chain.doFilter(request, response);
             return;
         }
 
         currentAuthentication.setAuthenticated(true);
 
+        log.trace("Going through all the collectors to authorize the request");
         for (AuthCollector authCollector : authorizationCollectors) {
+            log.trace("Collector name: '{}'", authCollector.collectorName());
             currentAuthentication = authCollector.collectAuthorisation(request, currentAuthentication);
         }
         if (currentAuthentication != null) {
+            log.trace("Authentication computed by the multi-auth: {}", currentAuthentication);
             SecurityContextHolder.getContext().setAuthentication(currentAuthentication);
         }
 

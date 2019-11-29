@@ -46,7 +46,12 @@ public abstract class AccessTokenCollector<T> implements AuthCollector {
 
     protected TokenValidator<T> tokenValidator;
     protected AuthoritiesCollector<T> authoritiesCollector;
+    protected String collectorName = this.getClass().getName();
 
+    @Override
+    public String collectorName() {
+        return collectorName;
+    }
     @Override
     public Authentication collectAuthentication(HttpServletRequest request) {
         return null;
@@ -58,22 +63,26 @@ public abstract class AccessTokenCollector<T> implements AuthCollector {
         String authorization = req.getHeader("Authorization");
         if (authorization != null && authorization.startsWith("Bearer ")) {
             String tokenSerialised = authorization.replaceFirst("Bearer ", "");
-            log.trace("Token received", tokenSerialised);
+            log.trace("Token received {}", tokenSerialised);
             try {
                 T t = getTokenValidator().validate(tokenSerialised);
                 Set<GrantedAuthority> authorities = getAuthoritiesCollector().getAuthorities(t);
+                log.trace("Authorities founds: {}", authorities);
+
                 authorities.addAll(currentAuthentication.getAuthorities());
+                log.trace("Final authorities merged with previous authorities: {}", authorities);
 
                 PasswordLessUserNameAuthentication passwordLessUserNameAuthentication = new PasswordLessUserNameAuthentication(currentAuthentication.getName(), authorities);
                 passwordLessUserNameAuthentication.setAuthenticated(currentAuthentication.isAuthenticated());
                 return passwordLessUserNameAuthentication;
-
             } catch (HttpClientErrorException e) {
+                log.trace("Access token not valid", e);
                 if (e.getStatusCode() == HttpStatus.UNAUTHORIZED || e.getStatusCode() == HttpStatus.FORBIDDEN) {
                     throw new BadCredentialsException("Invalid access token", e);
                 }
                 throw e;
             } catch (ParseException e) {
+                log.trace("Couldn't parse the access token", e);
                 throw new BadCredentialsException("Invalid access token", e);
             }
         } else {

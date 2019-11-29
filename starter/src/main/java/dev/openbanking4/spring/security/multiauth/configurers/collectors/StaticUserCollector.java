@@ -40,6 +40,12 @@ public class StaticUserCollector implements AuthCollector {
 
     private UsernameCollector usernameCollector;
     private Set<GrantedAuthority> grantedAuthorities = Collections.EMPTY_SET;
+    private String collectorName = this.getClass().getName();
+
+    @Override
+    public String collectorName() {
+        return collectorName;
+    }
 
     @Override
     public Authentication collectAuthentication(HttpServletRequest request) {
@@ -50,7 +56,9 @@ public class StaticUserCollector implements AuthCollector {
     public Authentication collectAuthorisation(HttpServletRequest request, Authentication currentAuthentication) {
 
         Set<GrantedAuthority> authorities = new HashSet<>(grantedAuthorities);
+        log.trace("Authorities setup for the static user: {}", authorities);
         authorities.addAll(currentAuthentication.getAuthorities());
+        log.trace("Final authorities merged with previous authorities: {}", authorities);
 
         PasswordLessUserNameAuthentication passwordLessUserNameAuthentication = new PasswordLessUserNameAuthentication(currentAuthentication.getName(), authorities);
         passwordLessUserNameAuthentication.setAuthenticated(currentAuthentication.isAuthenticated());

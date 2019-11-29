@@ -56,11 +56,13 @@ public class CustomJwtCookieCollectorTest {
     @Before
     public void setUp() {
 
-        this.customCookieCollector = new CustomJwtCookieCollector(
-                tokenSerialised -> JWTParser.parse(tokenSerialised),
-                token -> token.getJWTClaimsSet().getStringListClaim("group").stream()
-                        .map(g -> new SimpleGrantedAuthority(g)).collect(Collectors.toSet()),
-                "sso");
+        this.customCookieCollector = CustomJwtCookieCollector.builder()
+                .collectorName("Custom-cookie-jwt-for-test")
+                .authoritiesCollector(token -> token.getJWTClaimsSet().getStringListClaim("group").stream()
+                                                .map(g -> new SimpleGrantedAuthority(g)).collect(Collectors.toSet()))
+                .tokenValidator(tokenSerialised -> JWTParser.parse(tokenSerialised))
+                .cookieName("sso")
+                .build();
     }
 
     @Test
@@ -139,13 +141,17 @@ public class CustomJwtCookieCollectorTest {
         when(mockedRequest.getCookies()).thenReturn(new Cookie[]{new Cookie("sso",
                 "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0b3RvIiwiZ3JvdXAiOlsiYWRtaW4iLCJjbHViRmFsYWZlbCJdfQ.kQDyIfKsf7xM0uN2F47X_yJgtgnG8CDYtPc6t5KAHL8")});
 
-        CustomJwtCookieCollector customCookieCollector401 = new CustomJwtCookieCollector(
-                token -> {
-                    throw new HttpClientErrorException(HttpStatus.FORBIDDEN, "Wrong token");
-                },
-                token -> token.getJWTClaimsSet().getStringListClaim("group").stream()
-                        .map(g -> new SimpleGrantedAuthority(g)).collect(Collectors.toSet()),
-                "sso");
+        CustomJwtCookieCollector customCookieCollector401 =
+                CustomJwtCookieCollector.builder()
+                        .collectorName("Custom-cookie-jwt-for-test")
+                        .authoritiesCollector(token -> {
+                            throw new HttpClientErrorException(HttpStatus.FORBIDDEN, "Wrong token");
+                        })
+                        .tokenValidator(token -> {
+                            throw new HttpClientErrorException(HttpStatus.FORBIDDEN, "Wrong token");
+                        })
+                        .cookieName("sso")
+                        .build();;
 
         //When
         customCookieCollector401.collectAuthentication(mockedRequest);

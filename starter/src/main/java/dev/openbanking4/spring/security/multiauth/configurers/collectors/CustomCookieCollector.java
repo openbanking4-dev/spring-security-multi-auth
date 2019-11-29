@@ -45,10 +45,16 @@ import java.util.Set;
 @Data
 public abstract class CustomCookieCollector<T> implements AuthCollector {
 
+    private String collectorName;
     protected TokenValidator<T> tokenValidator;
     protected UsernameCollector<T> usernameCollector;
     protected AuthoritiesCollector<T> authoritiesCollector;
     protected String cookieName;
+
+    @Override
+    public String collectorName() {
+        return collectorName;
+    }
 
     @Override
     public Authentication collectAuthentication(HttpServletRequest request) {
@@ -81,22 +87,27 @@ public abstract class CustomCookieCollector<T> implements AuthCollector {
         Cookie cookie = getCookie(request, cookieName);
         if (cookie != null) {
             String tokenSerialised = cookie.getValue();
-            log.trace("Token received", tokenSerialised);
+            log.trace("Token received {} from cookie '{}'", tokenSerialised, cookieName);
             try {
                 T t = getTokenValidator().validate(tokenSerialised);
-                authorities.addAll(authoritiesCollector.getAuthorities(t));
+                Set<GrantedAuthority> authoritiesFound = authoritiesCollector.getAuthorities(t);
+                log.trace("Authorities founds: {}", authorities);
+                authorities.addAll(authoritiesFound);
             } catch (HttpClientErrorException e) {
+                log.trace("Cookie not valid", e);
                 if (e.getStatusCode() == HttpStatus.UNAUTHORIZED || e.getStatusCode() == HttpStatus.FORBIDDEN) {
                     throw new BadCredentialsException("Invalid cookie", e);
                 }
                 throw e;
             } catch (ParseException e) {
+                log.trace("Couldn't parse cookie", e);
                 throw new BadCredentialsException("Invalid cookie", e);
             }
         } else {
             log.trace("No cookie found");
         }
         authorities.addAll(currentAuthentication.getAuthorities());
+        log.trace("Final authorities merged with previous authorities: {}", authorities);
         PasswordLessUserNameAuthentication passwordLessUserNameAuthentication = new PasswordLessUserNameAuthentication(currentAuthentication.getName(), authorities);
         passwordLessUserNameAuthentication.setAuthenticated(currentAuthentication.isAuthenticated());
         return passwordLessUserNameAuthentication;

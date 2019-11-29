@@ -30,6 +30,7 @@ import dev.openbanking4.spring.security.multiauth.configurers.collectors.StaticU
 import dev.openbanking4.spring.security.multiauth.model.CertificateHeaderFormat;
 import dev.openbanking4.spring.security.multiauth.model.granttypes.PSD2GrantType;
 import dev.openbanking4.spring.security.multiauth.model.granttypes.ScopeGrantType;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -46,7 +47,6 @@ import javax.servlet.FilterChain;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.text.ParseException;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -56,6 +56,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
+@Slf4j
 public class AuthCollectorFilterTest {
     private String testCertificate =  "-----BEGIN CERTIFICATE-----\n" +
             "MIIFoDCCBIigAwIBAgIEWcWcQDANBgkqhkiG9w0BAQsFADBTMQswCQYDVQQGEwJH\n" +
@@ -91,35 +92,38 @@ public class AuthCollectorFilterTest {
             "NUL7Aw==\n" +
             "-----END CERTIFICATE-----\n";
 
-    private StaticUserCollector staticUserCollector = new StaticUserCollector(
-            () -> "bob", Stream.of(new SimpleGrantedAuthority("bobPower")).collect(Collectors.toSet()));
+    private StaticUserCollector staticUserCollector = StaticUserCollector.builder()
+            .collectorName("statis-user-bob-for-test")
+            .usernameCollector(() -> "bob")
+            .grantedAuthorities(Stream.of(new SimpleGrantedAuthority("bobPower")).collect(Collectors.toSet()))
+            .build();
 
-    private CustomJwtCookieCollector customJwtCookieCollector = new CustomJwtCookieCollector(
-            tokenSerialised -> JWTParser.parse(tokenSerialised),
-            token -> {
-                try {
-                    return token.getJWTClaimsSet().getStringListClaim("group").stream()
-                            .map(g -> new SimpleGrantedAuthority(g)).collect(Collectors.toSet());
-                } catch (ParseException e) {
-                    return Collections.EMPTY_SET;
-                }
-            },
-            "sso");
+    private CustomJwtCookieCollector customJwtCookieCollector = CustomJwtCookieCollector.builder()
+            .collectorName("Custom-cookie-jwt-for-test")
+            .authoritiesCollector(token -> token.getJWTClaimsSet().getStringListClaim("group").stream()
+                    .map(g -> new SimpleGrantedAuthority(g)).collect(Collectors.toSet()))
+            .tokenValidator(tokenSerialised -> JWTParser.parse(tokenSerialised))
+            .cookieName("sso")
+            .build();
 
-    private PSD2Collector psd2Collector = new PSD2Collector(
-            certificatesChain -> certificatesChain[0].getSubjectDN().getName(),
-            (certificatesChain, psd2CertInfo, roles) -> {
+    private PSD2Collector psd2Collector = PSD2Collector.psd2Builder()
+            .collectorName("psd2-for-test")
+            .usernameCollector(certificatesChain -> certificatesChain[0].getSubjectDN().getName())
+            .authoritiesCollector((certificatesChain, psd2CertInfo, roles) -> {
                 if (roles == null) {
                     return Collections.EMPTY_SET;
                 }
                 return roles.getRolesOfPsp().stream().map(r -> new PSD2GrantType(r)).collect(Collectors.toSet());
-            },
-            CertificateHeaderFormat.PEM,
-            "x-cert");
+            })
+            .collectFromHeader(CertificateHeaderFormat.PEM)
+            .headerName("x-cert")
+            .build();
 
-    private StatelessAccessTokenCollector statelessAccessTokenCollector =  new StatelessAccessTokenCollector(
-            token -> JWTParser.parse(token)
-            );
+    private StatelessAccessTokenCollector statelessAccessTokenCollector = StatelessAccessTokenCollector.builder()
+            .collectorName("stateless-access-token-for-test")
+            .tokenValidator(token -> JWTParser.parse(token))
+            .build();
+
 
     @Test
     public void testStaticUser() throws Exception {

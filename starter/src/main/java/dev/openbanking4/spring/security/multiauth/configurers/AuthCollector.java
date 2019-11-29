@@ -24,7 +24,9 @@ import org.springframework.security.core.Authentication;
 
 import javax.servlet.http.HttpServletRequest;
 
-public interface AuthCollector {
+public interface  AuthCollector {
+
+    String collectorName();
 
     Authentication collectAuthentication(HttpServletRequest request);
 

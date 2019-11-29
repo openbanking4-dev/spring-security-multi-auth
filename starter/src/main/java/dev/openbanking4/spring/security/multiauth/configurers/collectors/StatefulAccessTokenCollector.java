@@ -32,8 +32,11 @@ public class StatefulAccessTokenCollector extends AccessTokenCollector<String> {
 
     @Builder
     public StatefulAccessTokenCollector(
-            TokenValidator<String> tokenValidator, AuthoritiesCollector<String> authoritiesCollector) {
+            String collectorName,
+            TokenValidator<String> tokenValidator,
+            AuthoritiesCollector<String> authoritiesCollector) {
 
+        this.collectorName = collectorName;
         this.authoritiesCollector = authoritiesCollector;
         this.tokenValidator = tokenValidator;
     }

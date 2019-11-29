@@ -86,11 +86,14 @@ public class X509CollectorTest {
     @Before
     public void setUp() {
 
-        this.x509Collector = new X509Collector(
-                certificatesChain -> certificatesChain[0].getSubjectDN().getName(),
-                certificatesChain -> Stream.of(CustomGrantType.INTERNAL).collect(Collectors.toSet()),
-                CertificateHeaderFormat.PEM,
-                headerName);
+        this.x509Collector =
+                X509Collector.x509Builder()
+                        .authoritiesCollector(certificatesChain -> Stream.of(CustomGrantType.INTERNAL).collect(Collectors.toSet()))
+                        .usernameCollector(certificatesChain -> certificatesChain[0].getSubjectDN().getName())
+                        .collectFromHeader(CertificateHeaderFormat.PEM)
+                        .headerName(headerName)
+                        .build();
+
     }
 
     @Test

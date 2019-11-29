@@ -22,6 +22,7 @@ package dev.openbanking4.spring.security.multiauth;
 
 import com.forgerock.cert.Psd2CertInfo;
 import com.forgerock.cert.psd2.RolesOfPsp;
+import com.nimbusds.jwt.JWTParser;
 import dev.openbanking4.spring.security.multiauth.configurers.MultiAuthenticationCollectorConfigurer;
 import dev.openbanking4.spring.security.multiauth.configurers.collectors.CustomJwtCookieCollector;
 import dev.openbanking4.spring.security.multiauth.configurers.collectors.PSD2Collector;
@@ -82,13 +83,17 @@ public class AuthenticationApplication {
 					.authenticationProvider(new CustomAuthProvider())
 					.apply(new MultiAuthenticationCollectorConfigurer<HttpSecurity>()
 							.collector(CustomJwtCookieCollector.builder()
+									.collectorName("Cookie-SESSION")
 									.cookieName("SESSION")
 									.build())
-							.collector(PSD2Collector.builder()
+							.collector(PSD2Collector.psd2Builder()
+									.collectorName("PSD2-cert")
 									.usernameCollector(selfSignedCertificates)
 									.authoritiesCollector(selfSignedCertificates)
 									.build())
 							.collectorForAuthorzation(StatelessAccessTokenCollector.builder()
+									.collectorName("stateless-access-token")
+									.tokenValidator(token -> JWTParser.parse(token))
 									.build())
 					)
 			;

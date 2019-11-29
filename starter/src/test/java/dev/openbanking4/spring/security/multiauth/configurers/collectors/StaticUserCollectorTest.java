@@ -50,8 +50,11 @@ public class StaticUserCollectorTest {
     @Before
     public void setUp() {
 
-        this.staticUserCollector = new StaticUserCollector(
-                () -> "toto", Stream.of(CustomGrantType.INTERNAL).collect(Collectors.toSet()));
+        this.staticUserCollector = StaticUserCollector.builder()
+                        .collectorName("statis-user-toto-for-test")
+                        .usernameCollector(() -> "toto")
+                        .grantedAuthorities(Stream.of(CustomGrantType.INTERNAL).collect(Collectors.toSet()))
+                        .build();
     }
 
     @Test

@@ -53,11 +53,12 @@ public class StatefulAccessTokenCollectorTest {
 
     @Before
     public void setUp() {
-        this.statefulAccessTokenCollector = new StatefulAccessTokenCollector(
-                token -> token,
-                token -> Stream.of(CustomGrantType.INTERNAL, new ScopeGrantType("accounts"),
-                        new ScopeGrantType("payments")).collect(Collectors.toSet())
-        );
+        this.statefulAccessTokenCollector = StatefulAccessTokenCollector.builder()
+                .collectorName("stateful-access-token-for-test")
+                .tokenValidator(token -> token)
+                .authoritiesCollector(token -> Stream.of(CustomGrantType.INTERNAL, new ScopeGrantType("accounts"),
+                        new ScopeGrantType("payments")).collect(Collectors.toSet()))
+                .build();
     }
 
     @Test
@@ -94,13 +95,13 @@ public class StatefulAccessTokenCollectorTest {
         RequestContextHolder.setRequestAttributes(new ServletWebRequest(mockedRequest));
 
         when(mockedRequest.getHeader("Authorization")).thenReturn("Bearer wrwerwOUPPS");
-        StatefulAccessTokenCollector statefulAccessTokenCollectorReturn401 = new StatefulAccessTokenCollector(
-                token -> {
-                    throw new HttpClientErrorException(HttpStatus.FORBIDDEN, "Wrong token");
-                },
-                token -> Stream.of(CustomGrantType.INTERNAL, new ScopeGrantType("accounts"),
-                        new ScopeGrantType("payments")).collect(Collectors.toSet())
-        );
+        StatefulAccessTokenCollector statefulAccessTokenCollectorReturn401 = StatefulAccessTokenCollector.builder()
+                        .collectorName("statefull-access-token-for-test")
+                        .tokenValidator(token -> token)
+                        .authoritiesCollector(token -> {
+                            throw new HttpClientErrorException(HttpStatus.FORBIDDEN, "Wrong token");
+                        })
+                        .build();
 
         //When
         statefulAccessTokenCollectorReturn401.collectAuthorisation(

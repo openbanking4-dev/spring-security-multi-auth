@@ -25,7 +25,7 @@ import dev.openbanking4.spring.security.multiauth.model.CertificateHeaderFormat;
 import dev.openbanking4.spring.security.multiauth.model.authentication.PasswordLessUserNameAuthentication;
 import dev.openbanking4.spring.security.multiauth.model.authentication.X509Authentication;
 import dev.openbanking4.spring.security.multiauth.utils.RequestUtils;
-import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -37,7 +37,6 @@ import java.util.Collections;
 import java.util.Set;
 
 @Slf4j
-@AllArgsConstructor
 public class X509Collector implements AuthCollector {
 
     private UsernameCollector usernameCollector;
@@ -45,6 +44,26 @@ public class X509Collector implements AuthCollector {
 
     private CertificateHeaderFormat collectFromHeader;
     private String headerName;
+
+    @Builder(builderMethodName = "x509Builder")
+    public X509Collector(String collectorName,
+            UsernameCollector usernameCollector,
+            AuthoritiesCollector authoritiesCollector,
+            CertificateHeaderFormat collectFromHeader,
+            String headerName) {
+        this.collectorName = collectorName;
+        this.usernameCollector = usernameCollector;
+        this.authoritiesCollector = authoritiesCollector;
+        this.collectFromHeader = collectFromHeader;
+        this.headerName = headerName;
+    }
+
+    private String collectorName;
+
+    @Override
+    public String collectorName() {
+        return collectorName;
+    }
 
     @Override
     public Authentication collectAuthentication(HttpServletRequest request) {
@@ -57,6 +76,8 @@ public class X509Collector implements AuthCollector {
         }
 
         String username = usernameCollector.getUserName(certificatesChain);
+        log.trace("Username '{}' extracted from the certificate", username);
+
         if (username == null) {
             return null;
         }
@@ -64,18 +85,6 @@ public class X509Collector implements AuthCollector {
         return new PasswordLessUserNameAuthentication(username, Collections.EMPTY_SET);
     }
 
-    private X509Certificate[] getX509Certificates(HttpServletRequest request) {
-        X509Certificate[] certificatesChain;
-
-        if (collectFromHeader != null && request.getHeader(headerName) != null) {
-            String certificatesSerialised = request.getHeader(headerName);
-            log.debug("Found a certificate in the header '{}'", certificatesSerialised);
-            certificatesChain = collectFromHeader.parseCertificate(certificatesSerialised).toArray(new X509Certificate[0]);
-        } else {
-            certificatesChain = RequestUtils.extractCertificatesChain(request);
-        }
-        return certificatesChain;
-    }
 
     @Override
     public Authentication collectAuthorisation(HttpServletRequest request, Authentication currentAuthentication) {
@@ -88,9 +97,26 @@ public class X509Collector implements AuthCollector {
         }
 
         Set<GrantedAuthority> authorities = authoritiesCollector.getAuthorities(certificatesChain);
+        log.trace("Authorities founds: {}", authorities);
+
         authorities.addAll(currentAuthentication.getAuthorities());
+        log.trace("Final authorities merged with previous authorities: {}", authorities);
 
         return createAuthentication(currentAuthentication, certificatesChain, authorities);
+    }
+
+
+    private X509Certificate[] getX509Certificates(HttpServletRequest request) {
+        X509Certificate[] certificatesChain;
+
+        if (collectFromHeader != null && request.getHeader(headerName) != null) {
+            String certificatesSerialised = request.getHeader(headerName);
+            log.debug("Found a certificate in the header '{}'", certificatesSerialised);
+            certificatesChain = collectFromHeader.parseCertificate(certificatesSerialised).toArray(new X509Certificate[0]);
+        } else {
+            certificatesChain = RequestUtils.extractCertificatesChain(request);
+        }
+        return certificatesChain;
     }
 
     protected X509Certificate[] getCertificatesFromRequest(HttpServletRequest request) {
@@ -110,6 +136,7 @@ public class X509Collector implements AuthCollector {
             log.debug("No certificate received");
             return null;
         }
+
         return certificatesChain;
     }
 

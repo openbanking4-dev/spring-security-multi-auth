@@ -32,8 +32,9 @@ import lombok.extern.slf4j.Slf4j;
 public class CustomJwtCookieCollector extends CustomCookieCollector<JWT> {
 
     @Builder
-    public CustomJwtCookieCollector(TokenValidator<JWT> tokenValidator, AuthoritiesCollector<JWT> authoritiesCollector, String cookieName) {
+    public CustomJwtCookieCollector(String collectorName, TokenValidator<JWT> tokenValidator, AuthoritiesCollector<JWT> authoritiesCollector, String cookieName) {
         super(
+                collectorName,
                 tokenValidator,
                 token -> token.getJWTClaimsSet().getSubject(),
                 authoritiesCollector,

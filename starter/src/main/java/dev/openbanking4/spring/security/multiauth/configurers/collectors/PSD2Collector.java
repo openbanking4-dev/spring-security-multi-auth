@@ -40,12 +40,14 @@ import java.util.Set;
 
 @Slf4j
 public class PSD2Collector extends X509Collector {
-    @Builder
-    public PSD2Collector(UsernameCollector usernameCollector, AuthoritiesCollector authoritiesCollector, CertificateHeaderFormat collectFromHeader, String headerName) {
-        super(usernameCollector, certificatesChain -> {
+
+    @Builder(builderMethodName = "psd2Builder")
+    public PSD2Collector(String collectorName, UsernameCollector usernameCollector, AuthoritiesCollector authoritiesCollector, CertificateHeaderFormat collectFromHeader, String headerName) {
+        super(collectorName, usernameCollector, certificatesChain -> {
             Set<GrantedAuthority> authorities = new HashSet<>();
             try {
                 Psd2CertInfo psd2CertInfo = new Psd2CertInfo(certificatesChain);
+                log.trace("Verify if certificate is a QWAC");
                 if (psd2CertInfo.isPsd2Cert()
                         && psd2CertInfo.getEidasCertType().isPresent()
                         && psd2CertInfo.getEidasCertType().get().equals(EidasCertType.WEB)) {
@@ -54,15 +56,26 @@ public class PSD2Collector extends X509Collector {
                     Optional<Psd2QcStatement> psd2QcStatementOpt = psd2CertInfo.getPsd2QCStatement();
                     if (psd2QcStatementOpt.isPresent()) {
                         Psd2QcStatement psd2QcStatement = psd2QcStatementOpt.get();
+                        log.trace("Founds PSD2 QC Statement {}", psd2QcStatement);
                         authorities.addAll(authoritiesCollector.getAuthorities(certificatesChain, psd2CertInfo, psd2QcStatement.getRoles()));
                     } else {
+                        log.trace("No PSD2 QC Statement found");
                         authorities.addAll(authoritiesCollector.getAuthorities(certificatesChain, psd2CertInfo, null));
                     }
                 } else {
+                    if (log.isTraceEnabled()) {
+                        if (!psd2CertInfo.isPsd2Cert()) {
+                            log.trace("Not a PSD2 cert");
+                        } else if (psd2CertInfo.getEidasCertType().isEmpty()) {
+                            log.trace("Is a PSD2 certs but no EIDAS cert type");
+                        } else if (psd2CertInfo.getEidasCertType().isEmpty()) {
+                            log.trace("Is a PSD2 certs with EIDAS cert type {} but it's not a QWAC", psd2CertInfo.getEidasCertType().get());
+                        }
+                    }
                     authorities.addAll(authoritiesCollector.getAuthorities(certificatesChain, null, null));
                 }
             } catch (InvalidPsd2EidasCertificate | InvalidEidasCertType invalidPsd2EidasCertificate) {
-                invalidPsd2EidasCertificate.printStackTrace();
+                log.warn("Certificate founds couldn't be parsed as a PSD2 certificate. Will ignore the certificate", invalidPsd2EidasCertificate);
             }
 
             return authorities;
@@ -75,15 +88,11 @@ public class PSD2Collector extends X509Collector {
         try {
             Psd2CertInfo psd2CertInfo = new Psd2CertInfo(certificatesChain);
 
-            if (psd2CertInfo.isPsd2Cert()
-                    && psd2CertInfo.getEidasCertType().isPresent()
-                    && psd2CertInfo.getEidasCertType().get().equals(EidasCertType.WEB)) {
-
-            }
             PSD2Authentication psd2Authentication = new PSD2Authentication(currentAuthentication.getName(), authorities, certificatesChain, psd2CertInfo);
             psd2Authentication.setAuthenticated(currentAuthentication.isAuthenticated());
             return psd2Authentication;
-        } catch (InvalidPsd2EidasCertificate | InvalidEidasCertType invalidPsd2EidasCertificate) {
+        } catch (InvalidPsd2EidasCertificate invalidPsd2EidasCertificate) {
+            log.warn("Certificate founds couldn't be parsed as a PSD2 certificate. Will ignore the certificate", invalidPsd2EidasCertificate);
         }
         return super.createAuthentication(currentAuthentication, certificatesChain, authorities);
     }
