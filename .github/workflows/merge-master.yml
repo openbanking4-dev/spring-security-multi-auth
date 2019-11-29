@@ -66,3 +66,6 @@ jobs:
         access-token: ${{ secrets.BOT_GITHUB_REPO_ACCESS_TOKEN }}
         owner: openbanking4-dev
         repo: spring-security-multi-auth
+    - uses: codecov/codecov-action@v1
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
