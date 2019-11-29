@@ -21,26 +21,32 @@
 package dev.openbanking4.spring.security.multiauth.configurers.collectors;
 
 import com.nimbusds.jwt.JWT;
-import com.nimbusds.jwt.JWTParser;
 import dev.openbanking4.spring.security.multiauth.model.granttypes.ScopeGrantType;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.Collections;
 import java.util.stream.Collectors;
 
 @Slf4j
 @ToString
-@Builder
 @Getter
 public class StatelessAccessTokenCollector extends AccessTokenCollector<JWT> {
 
-    public StatelessAccessTokenCollector() {
+    @Builder
 
-        this.authoritiesCollector = token -> token.getJWTClaimsSet().getStringListClaim("scope")
+    public StatelessAccessTokenCollector(TokenValidator<JWT> tokenValidator) {
+
+        this.authoritiesCollector = token -> {
+            if (token.getJWTClaimsSet().getStringListClaim("scope") == null) {
+                return Collections.EMPTY_SET;
+            }
+            return token.getJWTClaimsSet().getStringListClaim("scope")
                 .stream()
                 .map(s -> new ScopeGrantType(s)).collect(Collectors.toSet());
-        this.tokenValidator = token -> JWTParser.parse(token);
+        };
+        this.tokenValidator = tokenValidator;
     }
 }

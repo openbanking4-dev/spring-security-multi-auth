@@ -58,12 +58,13 @@ public class PSD2Collector extends X509Collector {
                     } else {
                         authorities.addAll(authoritiesCollector.getAuthorities(certificatesChain, psd2CertInfo, null));
                     }
+                } else {
+                    authorities.addAll(authoritiesCollector.getAuthorities(certificatesChain, null, null));
                 }
             } catch (InvalidPsd2EidasCertificate | InvalidEidasCertType invalidPsd2EidasCertificate) {
                 invalidPsd2EidasCertificate.printStackTrace();
             }
 
-            authorities.addAll(authoritiesCollector.getAuthorities(certificatesChain, null, null));
             return authorities;
         }, collectFromHeader, headerName);
     }

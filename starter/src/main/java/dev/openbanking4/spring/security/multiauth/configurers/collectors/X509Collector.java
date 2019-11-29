@@ -49,20 +49,10 @@ public class X509Collector implements AuthCollector {
     @Override
     public Authentication collectAuthentication(HttpServletRequest request) {
 
-        if (RequestContextHolder.getRequestAttributes() == null) {
-            log.warn("No request attributes available!");
-            return null;
-        }
-        if (request == null) {
-            log.warn("No request received!");
-            return null;
-        }
-
-        X509Certificate[] certificatesChain = getX509Certificates(request);
+        X509Certificate[] certificatesChain = getCertificatesFromRequest(request);
 
         //Check if no client certificate received
-        if (certificatesChain == null || certificatesChain.length == 0) {
-            log.debug("No certificate received");
+        if (certificatesChain == null) {
             return null;
         }
 
@@ -90,20 +80,10 @@ public class X509Collector implements AuthCollector {
     @Override
     public Authentication collectAuthorisation(HttpServletRequest request, Authentication currentAuthentication) {
 
-        if (RequestContextHolder.getRequestAttributes() == null) {
-            log.warn("No request attributes available!");
-            return currentAuthentication;
-        }
-        if (request == null) {
-            log.warn("No request received!");
-            return currentAuthentication;
-        }
-
-        X509Certificate[] certificatesChain = getX509Certificates(request);
+        X509Certificate[] certificatesChain = getCertificatesFromRequest(request);
 
         //Check if no client certificate received
-        if (certificatesChain == null || certificatesChain.length == 0) {
-            log.debug("No certificate received");
+        if (certificatesChain == null) {
             return currentAuthentication;
         }
 
@@ -111,6 +91,26 @@ public class X509Collector implements AuthCollector {
         authorities.addAll(currentAuthentication.getAuthorities());
 
         return createAuthentication(currentAuthentication, certificatesChain, authorities);
+    }
+
+    protected X509Certificate[] getCertificatesFromRequest(HttpServletRequest request) {
+        if (RequestContextHolder.getRequestAttributes() == null) {
+            log.warn("No request attributes available!");
+            return null;
+        }
+        if (request == null) {
+            log.warn("No request received!");
+            return null;
+        }
+
+        X509Certificate[] certificatesChain = getX509Certificates(request);
+
+        //Check if no client certificate received
+        if (certificatesChain == null || certificatesChain.length == 0) {
+            log.debug("No certificate received");
+            return null;
+        }
+        return certificatesChain;
     }
 
     protected Authentication createAuthentication(Authentication currentAuthentication, X509Certificate[] certificatesChain, Set<GrantedAuthority> authorities) {
