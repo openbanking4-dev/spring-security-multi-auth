@@ -20,6 +20,7 @@
  */
 package dev.openbanking4.spring.security.multiauth.configurers.collectors;
 
+import com.nimbusds.jose.JOSEException;
 import dev.openbanking4.spring.security.multiauth.configurers.AuthCollector;
 import dev.openbanking4.spring.security.multiauth.model.authentication.PasswordLessUserNameAuthentication;
 import lombok.AllArgsConstructor;
@@ -84,6 +85,9 @@ public abstract class AccessTokenCollector<T> implements AuthCollector {
             } catch (ParseException e) {
                 log.trace("Couldn't parse the access token", e);
                 throw new BadCredentialsException("Invalid access token", e);
+            } catch (JOSEException e) {
+                log.trace("Couldn't parse the access token", e);
+                throw new BadCredentialsException("Invalid access token", e);
             }
         } else {
             log.trace("No access token found");
@@ -93,7 +97,7 @@ public abstract class AccessTokenCollector<T> implements AuthCollector {
 
 
     public interface TokenValidator<T> {
-        T validate(String tokenSerialised) throws ParseException;
+        T validate(String tokenSerialised) throws ParseException, JOSEException;
     }
 
     public interface UsernameCollector<T> {

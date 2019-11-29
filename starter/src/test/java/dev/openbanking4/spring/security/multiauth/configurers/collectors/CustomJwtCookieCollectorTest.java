@@ -133,7 +133,7 @@ public class CustomJwtCookieCollectorTest {
     }
 
     @Test(expected = BadCredentialsException.class)
-    public void test401On0CookieValidationByExternalParty() {
+    public void test401On0CookieValidationByExternalPartyForAuthentication() {
         //Given
         HttpServletRequest mockedRequest = Mockito.mock(HttpServletRequest.class);
         RequestContextHolder.setRequestAttributes(new ServletWebRequest(mockedRequest));
@@ -155,6 +155,37 @@ public class CustomJwtCookieCollectorTest {
 
         //When
         customCookieCollector401.collectAuthentication(mockedRequest);
+
+        //Then BadCredentialsException
+    }
+
+    @Test(expected = BadCredentialsException.class)
+    public void test401On0CookieValidationByExternalPartyForAuthorisation() {
+        //Given
+        HttpServletRequest mockedRequest = Mockito.mock(HttpServletRequest.class);
+        RequestContextHolder.setRequestAttributes(new ServletWebRequest(mockedRequest));
+
+        when(mockedRequest.getCookies()).thenReturn(new Cookie[]{new Cookie("sso",
+                "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0b3RvIiwiZ3JvdXAiOlsiYWRtaW4iLCJjbHViRmFsYWZlbEtpbmciXX0.3JsO3h2HEZSJy4sX45RfKfwzPIWvdgt1LbHeEjExWZY")});
+
+        CustomJwtCookieCollector customCookieCollector401 =
+                CustomJwtCookieCollector.builder()
+                        .collectorName("Custom-cookie-jwt-for-test")
+                        .authoritiesCollector(token -> {
+                            throw new HttpClientErrorException(HttpStatus.FORBIDDEN, "Wrong token");
+                        })
+                        .tokenValidator(token -> {
+                            throw new HttpClientErrorException(HttpStatus.FORBIDDEN, "Wrong token");
+                        })
+                        .cookieName("sso")
+                        .build();;
+
+        ScopeGrantType accountsScope = new ScopeGrantType("accounts");
+
+        //When
+        Authentication authentication = customCookieCollector.collectAuthorisation(
+                mockedRequest,
+                new PasswordLessUserNameAuthentication("toto", Collections.singleton(accountsScope)));
 
         //Then BadCredentialsException
     }

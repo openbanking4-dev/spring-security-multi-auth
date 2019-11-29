@@ -52,7 +52,7 @@ public class PSD2CollectorTest {
     private PSD2Collector psd2Collector;
     private String headerName = "x-cert";
 
-    private String testCertificate =  "-----BEGIN CERTIFICATE-----\n" +
+    private String testPSD2Certificate =  "-----BEGIN CERTIFICATE-----\n" +
             "MIIFoDCCBIigAwIBAgIEWcWcQDANBgkqhkiG9w0BAQsFADBTMQswCQYDVQQGEwJH\n" +
             "QjEUMBIGA1UEChMLT3BlbkJhbmtpbmcxLjAsBgNVBAMTJU9wZW5CYW5raW5nIFBy\n" +
             "ZS1Qcm9kdWN0aW9uIElzc3VpbmcgQ0EwHhcNMTkwODE5MTUzMTU2WhcNMjAwOTE5\n" +
@@ -86,6 +86,44 @@ public class PSD2CollectorTest {
             "NUL7Aw==\n" +
             "-----END CERTIFICATE-----\n";
 
+    public String testNonPSD2Cert = "-----BEGIN CERTIFICATE-----\n" +
+            "MIIGeTCCBWGgAwIBAgIRAMCIY4gkrmSd54opOFMe/MgwDQYJKoZIhvcNAQELBQAw\n" +
+            "gZAxCzAJBgNVBAYTAkdCMRswGQYDVQQIExJHcmVhdGVyIE1hbmNoZXN0ZXIxEDAO\n" +
+            "BgNVBAcTB1NhbGZvcmQxGjAYBgNVBAoTEUNPTU9ETyBDQSBMaW1pdGVkMTYwNAYD\n" +
+            "VQQDEy1DT01PRE8gUlNBIERvbWFpbiBWYWxpZGF0aW9uIFNlY3VyZSBTZXJ2ZXIg\n" +
+            "Q0EwHhcNMTYxMTE2MDAwMDAwWhcNMjAwMjE1MjM1OTU5WjCBgTEhMB8GA1UECxMY\n" +
+            "RG9tYWluIENvbnRyb2wgVmFsaWRhdGVkMSQwIgYDVQQLExtIb3N0ZWQgYnkgQmx1\n" +
+            "ZUhvc3QuQ29tLCBJTkMxHTAbBgNVBAsTFFBvc2l0aXZlU1NMIFdpbGRjYXJkMRcw\n" +
+            "FQYDVQQDDA4qLmJsdWVob3N0LmNvbTCCAiIwDQYJKoZIhvcNAQEBBQADggIPADCC\n" +
+            "AgoCggIBALR9io8CY+h6wacVfo24XA/w7XSy3BeRB1W0xgPNVJ9OiQE2Zhs7oNS5\n" +
+            "Cpsq/6Ueqv5Y0pdS6joGXQ60lkLD3xhmx4lTmYN0pwp4o95Lzv6PxiIQ4V7Zz4+4\n" +
+            "E+4Ic1glSBBT4ANwH/N+Wr8Gw4TvQDoKOPXwR9tBaqTIRh9FxiefTDkYAGdpzPSd\n" +
+            "/ZhqMam3SaW+209atUu5KmGtisFIbiolTFNSWJRR8MB5xZzbBVYwVwA4A3K8Q6/O\n" +
+            "S5GmokRFsn93goeeUpv+erDyP6VM9d3pu5QNyn4wW5eexUYl9CSXbUgoSUu3UsYo\n" +
+            "gaVVSAf3LfPWmmcOMXmEDfjCCG399FQmSDsCHZdimxBrHERlWV09UHIryICgsJqd\n" +
+            "sFLXSm/FxjQJ0/3DPDotqmaiEGYdgL1VQuqpYHXDv8JgB0GgJ/ufHnpq3+KuNMfp\n" +
+            "SSBGhGPbeo3QGY/Uz1BB58UJRWTWhqghaKP+8MG4yPylQ1TMbZcabkcX8PbyxdRd\n" +
+            "4k2q2nktM+WNUCKQ4240f3Ujey8s/63kxXb22Y59rX44sYr4kuMAxDN4ztmPPGsq\n" +
+            "+46NnjE9DGaW255rnv3C3MA05bPETY/E1CvU7i3AZRYQwGGlAkSXCbS4htREaF83\n" +
+            "UrFXvFyoZf1Nci1mMOnS7y92Ad2M7JDkVtGCVLl9aXYz+BxEE9uPAgMBAAGjggHZ\n" +
+            "MIIB1TAfBgNVHSMEGDAWgBSQr2o6lFoL2JDqElZz30O0Oija5zAdBgNVHQ4EFgQU\n" +
+            "1H1KPlLcvK6JP/e/+okqjj0HrgQwDgYDVR0PAQH/BAQDAgWgMAwGA1UdEwEB/wQC\n" +
+            "MAAwHQYDVR0lBBYwFAYIKwYBBQUHAwEGCCsGAQUFBwMCME8GA1UdIARIMEYwOgYL\n" +
+            "KwYBBAGyMQECAgcwKzApBggrBgEFBQcCARYdaHR0cHM6Ly9zZWN1cmUuY29tb2Rv\n" +
+            "LmNvbS9DUFMwCAYGZ4EMAQIBMFQGA1UdHwRNMEswSaBHoEWGQ2h0dHA6Ly9jcmwu\n" +
+            "Y29tb2RvY2EuY29tL0NPTU9ET1JTQURvbWFpblZhbGlkYXRpb25TZWN1cmVTZXJ2\n" +
+            "ZXJDQS5jcmwwgYUGCCsGAQUFBwEBBHkwdzBPBggrBgEFBQcwAoZDaHR0cDovL2Ny\n" +
+            "dC5jb21vZG9jYS5jb20vQ09NT0RPUlNBRG9tYWluVmFsaWRhdGlvblNlY3VyZVNl\n" +
+            "cnZlckNBLmNydDAkBggrBgEFBQcwAYYYaHR0cDovL29jc3AuY29tb2RvY2EuY29t\n" +
+            "MCcGA1UdEQQgMB6CDiouYmx1ZWhvc3QuY29tggxibHVlaG9zdC5jb20wDQYJKoZI\n" +
+            "hvcNAQELBQADggEBAIwvxYYexAF23mL9r0uOX268z6D66HRtLwopZT0IzxqNdVD1\n" +
+            "FUm7yOCvGpytCa0dFxa9wT5PSewoZk+HRI5K7AjrURpg+JOHFa4A5VGirmM7S819\n" +
+            "/LAN39JJ0UWfy1EZcgBuGzfO5Tt2UpKwi8mZ81+uJTFa8Vxu1NCf/uHJIHUUkrCY\n" +
+            "bVAJQbulHD8tDmfwj255QwegWzHkqkY9VRMqL4MvuBseNNnX4FAk0+05DNPeWpuk\n" +
+            "/ynPUL3T8/DMQaOgOdin4fQiVmF86b86BgaWE+RbJEUw3I5JvSDTD2GWTHjIL5O7\n" +
+            "ry68YofiurIpZdfIFReYU0Gt9jpXetc/MWDrwMQ=\n" +
+            "-----END CERTIFICATE-----\n";
+
     @Before
     public void setUp() {
 
@@ -109,7 +147,7 @@ public class PSD2CollectorTest {
         HttpServletRequest mockedRequest = Mockito.mock(HttpServletRequest.class);
         RequestContextHolder.setRequestAttributes(new ServletWebRequest(mockedRequest));
 
-        when(mockedRequest.getHeader(headerName)).thenReturn(testCertificate);
+        when(mockedRequest.getHeader(headerName)).thenReturn(testPSD2Certificate);
 
         //When
         Authentication authentication = psd2Collector.collectAuthentication(mockedRequest);
@@ -131,7 +169,7 @@ public class PSD2CollectorTest {
         HttpServletRequest mockedRequest = Mockito.mock(HttpServletRequest.class);
         RequestContextHolder.setRequestAttributes(new ServletWebRequest(mockedRequest));
 
-        when(mockedRequest.getHeader(headerName)).thenReturn(testCertificate);
+        when(mockedRequest.getHeader(headerName)).thenReturn(testPSD2Certificate);
 
         ScopeGrantType accountsScope = new ScopeGrantType("accounts");
 
@@ -151,5 +189,27 @@ public class PSD2CollectorTest {
 
         assertThat(userDetailsResult.getUsername()).isEqualTo(userDetailsExpected.getUsername());
         assertThat(userDetailsResult.getAuthorities()).isEqualTo(userDetailsExpected.getAuthorities());
+    }
+
+    @Test
+    public void testNonPSD2CertAuthentication() {
+        //Given
+        HttpServletRequest mockedRequest = Mockito.mock(HttpServletRequest.class);
+        RequestContextHolder.setRequestAttributes(new ServletWebRequest(mockedRequest));
+
+        when(mockedRequest.getHeader(headerName)).thenReturn(testNonPSD2Cert);
+
+        //When
+        Authentication authentication = psd2Collector.collectAuthentication(mockedRequest);
+
+        //Then
+        assertThat(authentication).isNotNull();
+        UserDetails userDetailsExpected = User.builder()
+                .username("CN=*.bluehost.com, OU=PositiveSSL Wildcard, OU=\"Hosted by BlueHost.Com, INC\", OU=Domain Control Validated")
+                .password("")
+                .authorities(Collections.emptySet())
+                .build();
+        UserDetails userDetailsResult = (UserDetails) authentication.getPrincipal();
+        assertThat(userDetailsResult.getUsername()).isEqualTo(userDetailsExpected.getUsername());
     }
 }

@@ -20,18 +20,19 @@
  */
 package dev.openbanking4.spring.security.multiauth;
 
-import com.forgerock.cert.Psd2CertInfo;
-import com.forgerock.cert.psd2.RolesOfPsp;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.nimbusds.jose.JWSObject;
+import com.nimbusds.jose.JWSVerifier;
+import com.nimbusds.jose.crypto.MACVerifier;
 import com.nimbusds.jwt.JWTParser;
 import dev.openbanking4.spring.security.multiauth.configurers.MultiAuthenticationCollectorConfigurer;
 import dev.openbanking4.spring.security.multiauth.configurers.collectors.CustomJwtCookieCollector;
-import dev.openbanking4.spring.security.multiauth.configurers.collectors.PSD2Collector;
 import dev.openbanking4.spring.security.multiauth.configurers.collectors.StatelessAccessTokenCollector;
+import dev.openbanking4.spring.security.multiauth.configurers.collectors.StaticUserCollector;
 import dev.openbanking4.spring.security.multiauth.configurers.collectors.X509Collector;
-import dev.openbanking4.spring.security.multiauth.model.granttypes.CustomGrantType;
-import dev.openbanking4.spring.security.multiauth.model.granttypes.PSD2GrantType;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
+import dev.openbanking4.spring.security.multiauth.model.CertificateHeaderFormat;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Configuration;
@@ -41,16 +42,11 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.security.KeyStore;
-import java.security.KeyStoreException;
 import java.security.Principal;
-import java.security.cert.X509Certificate;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @RestController
@@ -63,9 +59,11 @@ public class AuthenticationApplication {
 		SpringApplication.run(AuthenticationApplication.class, args);
 	}
 
-	@GetMapping("/hello")
-	public String sayHello(Principal principal) {
-		return "Hello, " + principal;
+	@Autowired
+	private ObjectMapper objectMapper;
+	@GetMapping("/whoIAm")
+	public String whoIAm(Principal principal) throws JsonProcessingException {
+		return objectMapper.writeValueAsString(((Authentication) principal).getPrincipal());
 	}
 
 	@Configuration
@@ -73,7 +71,6 @@ public class AuthenticationApplication {
 
 		@Override
 		protected void configure(HttpSecurity http) throws Exception {
-			SelfSignedCertificates selfSignedCertificates = new SelfSignedCertificates();
 			http
 
 					.authorizeRequests()
@@ -82,18 +79,62 @@ public class AuthenticationApplication {
 					.and()
 					.authenticationProvider(new CustomAuthProvider())
 					.apply(new MultiAuthenticationCollectorConfigurer<HttpSecurity>()
+
+							/**
+							 * Authentication & authorisation via a cookie 'SSO'
+							 * The authorities are extracted from the 'group' claim
+							 * The username is extracted from the 'sub' claim
+							 * Note: JWT cookies expected to be signed with HMAC with "password" as a secret
+							 */
 							.collector(CustomJwtCookieCollector.builder()
 									.collectorName("Cookie-SESSION")
-									.cookieName("SESSION")
+									.authoritiesCollector(token -> token.getJWTClaimsSet().getStringListClaim("group").stream()
+											.map(g -> new SimpleGrantedAuthority(g)).collect(Collectors.toSet()))
+									.tokenValidator(tokenSerialised -> {
+										JWSObject jwsObject = JWSObject.parse(tokenSerialised);
+										JWSVerifier verifier = new MACVerifier("Qt5y2isMydGwVuREoIomK9Ei70EoFQKH0GpcbtJ4");
+										jwsObject.verify(verifier);
+										return JWTParser.parse(tokenSerialised);
+									})
+									.cookieName("SSO")
 									.build())
-							.collector(PSD2Collector.psd2Builder()
+
+							/**
+							 * Authentication via a certificate
+							 * The username is the certificate subject.
+							 * We don't expect this app to do the SSL termination, therefore we will trust the header x-cert
+							 * populated by the gateway
+							 */
+							.collectorForAuthentication(X509Collector.x509Builder()
 									.collectorName("PSD2-cert")
-									.usernameCollector(selfSignedCertificates)
-									.authoritiesCollector(selfSignedCertificates)
+									.usernameCollector(certificatesChain -> certificatesChain[0].getSubjectDN().getName())
+									.collectFromHeader(CertificateHeaderFormat.PEM)
+									.headerName("x-cert")
 									.build())
+
+							/**
+							 * Authorization via an access token
+							 * The authorities are extracted from the 'scope' claim
+							 * Note: For simplification, the access token is signed with HMAC. In a real scenario, we would have
+							 * called the JWK_URI of the AS
+							 */
 							.collectorForAuthorzation(StatelessAccessTokenCollector.builder()
 									.collectorName("stateless-access-token")
-									.tokenValidator(token -> JWTParser.parse(token))
+									.tokenValidator(tokenSerialised -> {
+										JWSObject jwsObject = JWSObject.parse(tokenSerialised);
+										JWSVerifier verifier = new MACVerifier("Qt5y2isMydGwVuREoIomK9Ei70EoFQKH0GpcbtJ4");
+										jwsObject.verify(verifier);
+										return JWTParser.parse(tokenSerialised);
+									})
+									.build()
+							)
+							/**
+							 * Static authentication
+							 * If no authentication was possible with the previous collector, we default to the anonymous user
+							 */
+							.collectorForAuthentication(StaticUserCollector.builder()
+									.collectorName("StaticUser-anonymous")
+									.usernameCollector(() -> "anonymous")
 									.build())
 					)
 			;
@@ -110,43 +151,6 @@ public class AuthenticationApplication {
 		@Override
 		public boolean supports(Class<?> aClass) {
 			return true;
-		}
-	}
-
-	@Slf4j
-	public static class SelfSignedCertificates implements PSD2Collector.AuthoritiesCollector, X509Collector.UsernameCollector {
-
-		private static final String JAVA_KEYSTORE = "JKS";
-
-		@Value("${server.ssl.self-signed.ca-alias}")
-		private String caAlias;
-
-		@Override
-		public Set<GrantedAuthority> getAuthorities(X509Certificate[] certificatesChain, Psd2CertInfo psd2CertInfo, RolesOfPsp roles) {
-			Set<GrantedAuthority> authorities = new HashSet<>();
-
-			if (roles != null) {
-				authorities.addAll(roles.getRolesOfPsp().stream().map(r -> new PSD2GrantType(r)).collect(Collectors.toSet()));
-			}
-
-			try {
-				X509Certificate caCertificate = (X509Certificate) KeyStore.getInstance(JAVA_KEYSTORE).getCertificate(caAlias);
-
-				if ((certificatesChain.length > 1 && caCertificate.equals(certificatesChain[1]))
-						|| (certificatesChain.length == 1 && caCertificate.getSubjectX500Principal().equals(certificatesChain[0].getIssuerX500Principal()))) {
-
-					authorities.add(CustomGrantType.INTERNAL);
-				}
-			} catch (KeyStoreException e) {
-				log.error("Can't get Self signed internal CA");
-			}
-
-			return authorities;
-		}
-
-		@Override
-		public String getUserName(X509Certificate[] certificatesChain) {
-			return certificatesChain[0].getSubjectDN().getName();
 		}
 	}
 }

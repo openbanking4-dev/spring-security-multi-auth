@@ -1,0 +1,20 @@
+server:
+    ssl:
+        client-auth: WANT
+        enabled: true
+        trust-store: classpath:keystores/truststore.jks
+        trust-store-password: changeit
+        key-store: classpath:keystores/keystore.jks
+        key-store-password: changeit
+        self-signed:
+          ca-alias: obri-internal-ca
+    port: 8443
+
+trust-store:
+    path: classpath:keystores/truststore.jks
+    password: changeit
+
+logging:
+    level:
+        dev:
+            openbanking4: TRACE
