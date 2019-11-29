@@ -175,7 +175,7 @@ public class AuthCollectorFilterTest {
         RequestContextHolder.setRequestAttributes(new ServletWebRequest(mockedRequest));
 
         when(mockedRequest.getCookies()).thenReturn(new Cookie[]{new Cookie("sso",
-                "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0b3RvIiwiZ3JvdXAiOlsiYWRtaW4iLCJjbHViRmFsYWZlbCJdfQ.kQDyIfKsf7xM0uN2F47X_yJgtgnG8CDYtPc6t5KAHL8")});
+                "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0b3RvIiwiZ3JvdXAiOlsiYWRtaW4iLCJjbHViRmFsYWZlbEtpbmciXX0.3JsO3h2HEZSJy4sX45RfKfwzPIWvdgt1LbHeEjExWZY")});
 
         authCollectorFilter.doFilterInternal(mockedRequest, Mockito.mock(HttpServletResponse.class), Mockito.mock(FilterChain.class));
 
@@ -188,7 +188,7 @@ public class AuthCollectorFilterTest {
                 .password("")
                 .authorities(Stream.of(
                         new SimpleGrantedAuthority("admin"),
-                        new SimpleGrantedAuthority("clubFalafel"),
+                        new SimpleGrantedAuthority("clubFalafelKing"),
                         new SimpleGrantedAuthority("bobPower")
                 ).collect(Collectors.toList()))
                 .build();
@@ -215,7 +215,7 @@ public class AuthCollectorFilterTest {
         RequestContextHolder.setRequestAttributes(new ServletWebRequest(mockedRequest));
 
         when(mockedRequest.getCookies()).thenReturn(new Cookie[]{new Cookie("sso",
-                "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0b3RvIiwiZ3JvdXAiOlsiYWRtaW4iLCJjbHViRmFsYWZlbCJdfQ.kQDyIfKsf7xM0uN2F47X_yJgtgnG8CDYtPc6t5KAHL8")});
+                "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0b3RvIiwiZ3JvdXAiOlsiYWRtaW4iLCJjbHViRmFsYWZlbEtpbmciXX0.3JsO3h2HEZSJy4sX45RfKfwzPIWvdgt1LbHeEjExWZY")});
         when(mockedRequest.getHeader("Authorization")).thenReturn(
                 "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzY29wZSI6WyJhY2NvdW50cyIsInBheW1lbnRzIl19.NpzyDWjuoC9oAE50fb3W2Mgs1ORWuWYCMv2xg677fGc");
 
@@ -231,7 +231,7 @@ public class AuthCollectorFilterTest {
                 .password("")
                 .authorities(Stream.of(
                         new SimpleGrantedAuthority("admin"),
-                        new SimpleGrantedAuthority("clubFalafel"),
+                        new SimpleGrantedAuthority("clubFalafelKing"),
                         new SimpleGrantedAuthority("bobPower"),
                         new ScopeGrantType("accounts"),
                         new ScopeGrantType("payments")
@@ -306,7 +306,7 @@ public class AuthCollectorFilterTest {
         when(mockedRequest.getHeader("Authorization")).thenReturn(
                 "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzY29wZSI6WyJhY2NvdW50cyIsInBheW1lbnRzIl19.NpzyDWjuoC9oAE50fb3W2Mgs1ORWuWYCMv2xg677fGc");
         when(mockedRequest.getCookies()).thenReturn(new Cookie[]{new Cookie("sso",
-                "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0b3RvIiwiZ3JvdXAiOlsiYWRtaW4iLCJjbHViRmFsYWZlbCJdfQ.kQDyIfKsf7xM0uN2F47X_yJgtgnG8CDYtPc6t5KAHL8")});
+                "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0b3RvIiwiZ3JvdXAiOlsiYWRtaW4iLCJjbHViRmFsYWZlbEtpbmciXX0.3JsO3h2HEZSJy4sX45RfKfwzPIWvdgt1LbHeEjExWZY")});
 
 
         authCollectorFilter.doFilterInternal(mockedRequest, Mockito.mock(HttpServletResponse.class), Mockito.mock(FilterChain.class));
@@ -321,7 +321,7 @@ public class AuthCollectorFilterTest {
                 .authorities(Stream.of(
                         new PSD2GrantType(new RoleOfPsp(Psd2Role.PSP_AI)),
                         new SimpleGrantedAuthority("admin"),
-                        new SimpleGrantedAuthority("clubFalafel"),
+                        new SimpleGrantedAuthority("clubFalafelKing"),
                         new SimpleGrantedAuthority("bobPower"),
                         new ScopeGrantType("accounts"),
                         new ScopeGrantType("payments")
@@ -353,7 +353,7 @@ public class AuthCollectorFilterTest {
         when(mockedRequest.getHeader("Authorization")).thenReturn(
                 "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzY29wZSI6WyJhY2NvdW50cyIsInBheW1lbnRzIl19.NpzyDWjuoC9oAE50fb3W2Mgs1ORWuWYCMv2xg677fGc");
         when(mockedRequest.getCookies()).thenReturn(new Cookie[]{new Cookie("sso",
-                "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0b3RvIiwiZ3JvdXAiOlsiYWRtaW4iLCJjbHViRmFsYWZlbCJdfQ.kQDyIfKsf7xM0uN2F47X_yJgtgnG8CDYtPc6t5KAHL8")});
+                "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0b3RvIiwiZ3JvdXAiOlsiYWRtaW4iLCJjbHViRmFsYWZlbEtpbmciXX0.3JsO3h2HEZSJy4sX45RfKfwzPIWvdgt1LbHeEjExWZY")});
 
 
         authCollectorFilter.doFilterInternal(mockedRequest, Mockito.mock(HttpServletResponse.class), Mockito.mock(FilterChain.class));
@@ -368,7 +368,7 @@ public class AuthCollectorFilterTest {
                 .authorities(Stream.of(
                         new PSD2GrantType(new RoleOfPsp(Psd2Role.PSP_AI)),
                         new SimpleGrantedAuthority("admin"),
-                        new SimpleGrantedAuthority("clubFalafel"),
+                        new SimpleGrantedAuthority("clubFalafelKing"),
                         new SimpleGrantedAuthority("bobPower"),
                         new ScopeGrantType("accounts"),
                         new ScopeGrantType("payments")

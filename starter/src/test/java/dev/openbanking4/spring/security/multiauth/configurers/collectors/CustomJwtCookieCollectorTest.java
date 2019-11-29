@@ -72,7 +72,7 @@ public class CustomJwtCookieCollectorTest {
         RequestContextHolder.setRequestAttributes(new ServletWebRequest(mockedRequest));
 
         when(mockedRequest.getCookies()).thenReturn(new Cookie[]{new Cookie("sso",
-                "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0b3RvIiwiZ3JvdXAiOlsiYWRtaW4iLCJjbHViRmFsYWZlbCJdfQ.kQDyIfKsf7xM0uN2F47X_yJgtgnG8CDYtPc6t5KAHL8")});
+                "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0b3RvIiwiZ3JvdXAiOlsiYWRtaW4iLCJjbHViRmFsYWZlbEtpbmciXX0.3JsO3h2HEZSJy4sX45RfKfwzPIWvdgt1LbHeEjExWZY")});
 
         //When
         Authentication authentication = customCookieCollector.collectAuthentication(mockedRequest);
@@ -95,7 +95,7 @@ public class CustomJwtCookieCollectorTest {
         RequestContextHolder.setRequestAttributes(new ServletWebRequest(mockedRequest));
 
         when(mockedRequest.getCookies()).thenReturn(new Cookie[]{new Cookie("sso",
-                "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0b3RvIiwiZ3JvdXAiOlsiYWRtaW4iLCJjbHViRmFsYWZlbCJdfQ.kQDyIfKsf7xM0uN2F47X_yJgtgnG8CDYtPc6t5KAHL8")});
+                "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0b3RvIiwiZ3JvdXAiOlsiYWRtaW4iLCJjbHViRmFsYWZlbEtpbmciXX0.3JsO3h2HEZSJy4sX45RfKfwzPIWvdgt1LbHeEjExWZY")});
 
         ScopeGrantType accountsScope = new ScopeGrantType("accounts");
 
@@ -109,7 +109,7 @@ public class CustomJwtCookieCollectorTest {
         UserDetails userDetailsExpected = User.builder()
                 .username("toto")
                 .password("")
-                .authorities(Stream.of(new SimpleGrantedAuthority("admin"), new SimpleGrantedAuthority("clubFalafel"), accountsScope).collect(Collectors.toSet()))
+                .authorities(Stream.of(new SimpleGrantedAuthority("admin"), new SimpleGrantedAuthority("clubFalafelKing"), accountsScope).collect(Collectors.toSet()))
                 .build();
         UserDetails userDetailsResult = (UserDetails) authentication.getPrincipal();
 
@@ -139,7 +139,7 @@ public class CustomJwtCookieCollectorTest {
         RequestContextHolder.setRequestAttributes(new ServletWebRequest(mockedRequest));
 
         when(mockedRequest.getCookies()).thenReturn(new Cookie[]{new Cookie("sso",
-                "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0b3RvIiwiZ3JvdXAiOlsiYWRtaW4iLCJjbHViRmFsYWZlbCJdfQ.kQDyIfKsf7xM0uN2F47X_yJgtgnG8CDYtPc6t5KAHL8")});
+                "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0b3RvIiwiZ3JvdXAiOlsiYWRtaW4iLCJjbHViRmFsYWZlbEtpbmciXX0.3JsO3h2HEZSJy4sX45RfKfwzPIWvdgt1LbHeEjExWZY")});
 
         CustomJwtCookieCollector customCookieCollector401 =
                 CustomJwtCookieCollector.builder()
