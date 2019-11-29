@@ -21,7 +21,6 @@
 package dev.openbanking4.spring.security.multiauth.configurers.collectors;
 
 import com.nimbusds.jwt.JWT;
-import com.nimbusds.jwt.JWTParser;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.ToString;
@@ -33,9 +32,10 @@ import lombok.extern.slf4j.Slf4j;
 public class CustomJwtCookieCollector extends CustomCookieCollector<JWT> {
 
     @Builder
-    public CustomJwtCookieCollector(AuthoritiesCollector<JWT> authoritiesCollector, String cookieName) {
+    public CustomJwtCookieCollector(String collectorName, TokenValidator<JWT> tokenValidator, AuthoritiesCollector<JWT> authoritiesCollector, String cookieName) {
         super(
-                tokenSerialised -> JWTParser.parse(tokenSerialised),
+                collectorName,
+                tokenValidator,
                 token -> token.getJWTClaimsSet().getSubject(),
                 authoritiesCollector,
                 cookieName

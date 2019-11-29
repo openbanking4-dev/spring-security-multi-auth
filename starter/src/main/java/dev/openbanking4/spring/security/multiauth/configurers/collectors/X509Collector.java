@@ -25,7 +25,7 @@ import dev.openbanking4.spring.security.multiauth.model.CertificateHeaderFormat;
 import dev.openbanking4.spring.security.multiauth.model.authentication.PasswordLessUserNameAuthentication;
 import dev.openbanking4.spring.security.multiauth.model.authentication.X509Authentication;
 import dev.openbanking4.spring.security.multiauth.utils.RequestUtils;
-import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -37,7 +37,6 @@ import java.util.Collections;
 import java.util.Set;
 
 @Slf4j
-@AllArgsConstructor
 public class X509Collector implements AuthCollector {
 
     private UsernameCollector usernameCollector;
@@ -46,33 +45,66 @@ public class X509Collector implements AuthCollector {
     private CertificateHeaderFormat collectFromHeader;
     private String headerName;
 
+    @Builder(builderMethodName = "x509Builder")
+    public X509Collector(String collectorName,
+            UsernameCollector usernameCollector,
+            AuthoritiesCollector authoritiesCollector,
+            CertificateHeaderFormat collectFromHeader,
+            String headerName) {
+        this.collectorName = collectorName;
+        this.usernameCollector = usernameCollector;
+        this.authoritiesCollector = authoritiesCollector;
+        this.collectFromHeader = collectFromHeader;
+        this.headerName = headerName;
+    }
+
+    private String collectorName;
+
+    @Override
+    public String collectorName() {
+        return collectorName;
+    }
+
     @Override
     public Authentication collectAuthentication(HttpServletRequest request) {
 
-        if (RequestContextHolder.getRequestAttributes() == null) {
-            log.warn("No request attributes available!");
-            return null;
-        }
-        if (request == null) {
-            log.warn("No request received!");
-            return null;
-        }
-
-        X509Certificate[] certificatesChain = getX509Certificates(request);
+        X509Certificate[] certificatesChain = getCertificatesFromRequest(request);
 
         //Check if no client certificate received
-        if (certificatesChain == null || certificatesChain.length == 0) {
-            log.debug("No certificate received");
+        if (certificatesChain == null) {
             return null;
         }
 
         String username = usernameCollector.getUserName(certificatesChain);
+        log.trace("Username '{}' extracted from the certificate", username);
+
         if (username == null) {
             return null;
         }
 
         return new PasswordLessUserNameAuthentication(username, Collections.EMPTY_SET);
     }
+
+
+    @Override
+    public Authentication collectAuthorisation(HttpServletRequest request, Authentication currentAuthentication) {
+
+        X509Certificate[] certificatesChain = getCertificatesFromRequest(request);
+
+        //Check if no client certificate received
+        if (certificatesChain == null) {
+            return currentAuthentication;
+        }
+
+        Set<GrantedAuthority> authorities = authoritiesCollector.getAuthorities(certificatesChain);
+        log.trace("Authorities founds: {}", authorities);
+
+        authorities.addAll(currentAuthentication.getAuthorities());
+        log.trace("Final authorities merged with previous authorities: {}", authorities);
+
+        return createAuthentication(currentAuthentication, certificatesChain, authorities);
+    }
+
 
     private X509Certificate[] getX509Certificates(HttpServletRequest request) {
         X509Certificate[] certificatesChain;
@@ -87,16 +119,14 @@ public class X509Collector implements AuthCollector {
         return certificatesChain;
     }
 
-    @Override
-    public Authentication collectAuthorisation(HttpServletRequest request, Authentication currentAuthentication) {
-
+    protected X509Certificate[] getCertificatesFromRequest(HttpServletRequest request) {
         if (RequestContextHolder.getRequestAttributes() == null) {
             log.warn("No request attributes available!");
-            return currentAuthentication;
+            return null;
         }
         if (request == null) {
             log.warn("No request received!");
-            return currentAuthentication;
+            return null;
         }
 
         X509Certificate[] certificatesChain = getX509Certificates(request);
@@ -104,13 +134,10 @@ public class X509Collector implements AuthCollector {
         //Check if no client certificate received
         if (certificatesChain == null || certificatesChain.length == 0) {
             log.debug("No certificate received");
-            return currentAuthentication;
+            return null;
         }
 
-        Set<GrantedAuthority> authorities = authoritiesCollector.getAuthorities(certificatesChain);
-        authorities.addAll(currentAuthentication.getAuthorities());
-
-        return createAuthentication(currentAuthentication, certificatesChain, authorities);
+        return certificatesChain;
     }
 
     protected Authentication createAuthentication(Authentication currentAuthentication, X509Certificate[] certificatesChain, Set<GrantedAuthority> authorities) {
