@@ -191,36 +191,14 @@
 				<version>0.8.2</version>
 				<executions>
 					<execution>
-						<id>prepare-unit-test-coverage</id>
 						<goals>
 							<goal>prepare-agent</goal>
 						</goals>
 					</execution>
-					<execution>
-						<id>prepare-it-coverage</id>
-						<goals>
-							<goal>prepare-agent-integration</goal>
-						</goals>
-					</execution>
-					<execution>
-						<id>merge-reports</id>
-						<phase>post-integration-test</phase>
-						<goals>
-							<goal>merge</goal>
-						</goals>
-						<configuration>
-							<fileSets>
-								<fileSet>
-									<directory>${project.build.directory}</directory>
-									<includes>
-										<include>*.exec</include>
-									</includes>
-								</fileSet>
-							</fileSets>
-						</configuration>
-					</execution>
+					<!-- attached to Maven test phase -->
 					<execution>
 						<id>report</id>
+						<phase>test</phase>
 						<goals>
 							<goal>report</goal>
 						</goals>
