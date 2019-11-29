@@ -183,7 +183,7 @@ public class CustomJwtCookieCollectorTest {
         ScopeGrantType accountsScope = new ScopeGrantType("accounts");
 
         //When
-        Authentication authentication = customCookieCollector.collectAuthorisation(
+        customCookieCollector401.collectAuthorisation(
                 mockedRequest,
                 new PasswordLessUserNameAuthentication("toto", Collections.singleton(accountsScope)));
 
