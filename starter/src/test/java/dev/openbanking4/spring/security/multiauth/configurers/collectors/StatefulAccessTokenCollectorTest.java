@@ -21,7 +21,6 @@
 package dev.openbanking4.spring.security.multiauth.configurers.collectors;
 
 
-import com.nimbusds.jwt.JWTParser;
 import dev.openbanking4.spring.security.multiauth.model.authentication.PasswordLessUserNameAuthentication;
 import dev.openbanking4.spring.security.multiauth.model.granttypes.CustomGrantType;
 import dev.openbanking4.spring.security.multiauth.model.granttypes.ScopeGrantType;
@@ -30,10 +29,12 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletWebRequest;
 
@@ -46,14 +47,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
-public class StatelessAccessTokenCollectorTest {
+public class StatefulAccessTokenCollectorTest {
 
-    private StatelessAccessTokenCollector statelessAccessTokenCollector;
+    private StatefulAccessTokenCollector statefulAccessTokenCollector;
 
     @Before
     public void setUp() {
-        this.statelessAccessTokenCollector = new StatelessAccessTokenCollector(
-                token -> JWTParser.parse(token)
+        this.statefulAccessTokenCollector = new StatefulAccessTokenCollector(
+                token -> token,
+                token -> Stream.of(CustomGrantType.INTERNAL, new ScopeGrantType("accounts"),
+                        new ScopeGrantType("payments")).collect(Collectors.toSet())
         );
     }
 
@@ -63,11 +66,10 @@ public class StatelessAccessTokenCollectorTest {
         HttpServletRequest mockedRequest = Mockito.mock(HttpServletRequest.class);
         RequestContextHolder.setRequestAttributes(new ServletWebRequest(mockedRequest));
 
-        when(mockedRequest.getHeader("Authorization")).thenReturn(
-                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzY29wZSI6WyJhY2NvdW50cyIsInBheW1lbnRzIl19.NpzyDWjuoC9oAE50fb3W2Mgs1ORWuWYCMv2xg677fGc");
+        when(mockedRequest.getHeader("Authorization")).thenReturn("Bearer JhY2NvdW50cyIsInBheW1");
 
         //When
-        Authentication authentication = statelessAccessTokenCollector.collectAuthorisation(
+        Authentication authentication = statefulAccessTokenCollector.collectAuthorisation(
                 mockedRequest,
                 new PasswordLessUserNameAuthentication("toto", Collections.singleton(CustomGrantType.INTERNAL)));
 
@@ -76,7 +78,8 @@ public class StatelessAccessTokenCollectorTest {
         UserDetails userDetailsExpected = User.builder()
                 .username("toto")
                 .password("")
-                .authorities(Stream.of(CustomGrantType.INTERNAL, new ScopeGrantType("accounts"), new ScopeGrantType("payments")).collect(Collectors.toSet()))
+                .authorities(Stream.of(CustomGrantType.INTERNAL, new ScopeGrantType("accounts"),
+                        new ScopeGrantType("payments")).collect(Collectors.toSet()))
                 .build();
         UserDetails userDetailsResult = (UserDetails) authentication.getPrincipal();
 
@@ -85,16 +88,22 @@ public class StatelessAccessTokenCollectorTest {
     }
 
     @Test(expected = BadCredentialsException.class)
-    public void testWrongAccessTokenFormat() {
+    public void testWrongAccessToken() {
         //Given
         HttpServletRequest mockedRequest = Mockito.mock(HttpServletRequest.class);
         RequestContextHolder.setRequestAttributes(new ServletWebRequest(mockedRequest));
 
-        when(mockedRequest.getHeader("Authorization")).thenReturn(
-                "Bearer wrwerwOUPPS");
+        when(mockedRequest.getHeader("Authorization")).thenReturn("Bearer wrwerwOUPPS");
+        StatefulAccessTokenCollector statefulAccessTokenCollectorReturn401 = new StatefulAccessTokenCollector(
+                token -> {
+                    throw new HttpClientErrorException(HttpStatus.FORBIDDEN, "Wrong token");
+                },
+                token -> Stream.of(CustomGrantType.INTERNAL, new ScopeGrantType("accounts"),
+                        new ScopeGrantType("payments")).collect(Collectors.toSet())
+        );
 
         //When
-        statelessAccessTokenCollector.collectAuthorisation(
+        statefulAccessTokenCollectorReturn401.collectAuthorisation(
                 mockedRequest,
                 new PasswordLessUserNameAuthentication("toto", Collections.singleton(CustomGrantType.INTERNAL)));
 

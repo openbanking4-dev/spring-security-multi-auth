@@ -1,19 +1,23 @@
-/*
- * The contents of this file are subject to the terms of the Common Development and
- *  Distribution License (the License). You may not use this file except in compliance with the
- *  License.
+/**
+ * Copyright 2019 Quentin Castel.
  *
- *  You can obtain a copy of the License at https://forgerock.org/cddlv1-0/. See the License for the
- *  specific language governing permission and limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
  *
- *  When distributing Covered Software, include this CDDL Header Notice in each file and include
- *  the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
- *  Header, with the fields enclosed by brackets [] replaced by your own identifying
- *  information: "Portions copyright [year] [name of copyright owner]".
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
- *  Copyright 2019 ForgeRock AS.
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
-
 package dev.openbanking4.spring.security.multiauth.configurers;
 
 import com.forgerock.cert.psd2.Psd2Role;
@@ -120,6 +124,7 @@ public class AuthCollectorFilterTest {
     @Test
     public void testStaticUser() throws Exception {
         //Given
+        SecurityContextHolder.getContext().setAuthentication(null);
         List<AuthCollector> authCollectors = Stream.of(
                 customJwtCookieCollector,
                 psd2Collector,
@@ -152,6 +157,7 @@ public class AuthCollectorFilterTest {
     @Test
     public void testCookie() throws Exception {
         //Given
+        SecurityContextHolder.getContext().setAuthentication(null);
         List<AuthCollector> authCollectors = Stream.of(
                 customJwtCookieCollector,
                 psd2Collector,
@@ -191,6 +197,7 @@ public class AuthCollectorFilterTest {
     @Test
     public void testCookieAndAccessToken() throws Exception {
         //Given
+        SecurityContextHolder.getContext().setAuthentication(null);
         List<AuthCollector> authCollectors = Stream.of(
                 customJwtCookieCollector,
                 psd2Collector,
@@ -235,6 +242,7 @@ public class AuthCollectorFilterTest {
     @Test
     public void testCertificatesAndAccessToken() throws Exception {
         //Given
+        SecurityContextHolder.getContext().setAuthentication(null);
         List<AuthCollector> authCollectors = Stream.of(
                 customJwtCookieCollector,
                 psd2Collector,
@@ -277,6 +285,7 @@ public class AuthCollectorFilterTest {
     @Test
     public void testAuthenticationOrder() throws Exception {
         //Given
+        SecurityContextHolder.getContext().setAuthentication(null);
         List<AuthCollector> authCollectors = Stream.of(
                 customJwtCookieCollector,
                 psd2Collector,
@@ -323,6 +332,7 @@ public class AuthCollectorFilterTest {
     @Test
     public void testAuthenticationDiffOrder() throws Exception {
         //Given
+        SecurityContextHolder.getContext().setAuthentication(null);
         List<AuthCollector> authCollectors = Stream.of(
                 psd2Collector,
                 customJwtCookieCollector,
@@ -369,6 +379,7 @@ public class AuthCollectorFilterTest {
     @Test
     public void testDiffAuthenticationsAndAuthorisationCollectors() throws Exception {
         //Given
+        SecurityContextHolder.getContext().setAuthentication(null);
         List<AuthCollector> authenticationsCollectors = Stream.of(
                 psd2Collector
         ).collect(Collectors.toList());
@@ -403,5 +414,27 @@ public class AuthCollectorFilterTest {
 
         assertThat(userDetailsResult.getUsername()).isEqualTo(userDetailsExpected.getUsername());
         assertThat(userDetailsResult.getAuthorities()).isEqualTo(userDetailsExpected.getAuthorities());
+    }
+
+    @Test
+    public void testNoAuthenticationFound() throws Exception {
+        //Given
+        SecurityContextHolder.getContext().setAuthentication(null);
+        List<AuthCollector> authCollectors = Stream.of(
+                psd2Collector,
+                customJwtCookieCollector,
+                statelessAccessTokenCollector
+        ).collect(Collectors.toList());
+        AuthCollectorFilter authCollectorFilter = new AuthCollectorFilter(authCollectors, authCollectors);
+
+        //When
+        HttpServletRequest mockedRequest = Mockito.mock(HttpServletRequest.class);
+        RequestContextHolder.setRequestAttributes(new ServletWebRequest(mockedRequest));
+
+        authCollectorFilter.doFilterInternal(mockedRequest, Mockito.mock(HttpServletResponse.class), Mockito.mock(FilterChain.class));
+
+        //Then
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        assertThat(authentication).isNull();
     }
 }

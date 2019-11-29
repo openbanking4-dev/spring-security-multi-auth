@@ -63,11 +63,11 @@ public abstract class CustomCookieCollector<T> implements AuthCollector {
                 return new PasswordLessUserNameAuthentication(userName, Collections.EMPTY_SET);
             } catch (HttpClientErrorException e) {
                 if (e.getStatusCode() == HttpStatus.UNAUTHORIZED || e.getStatusCode() == HttpStatus.FORBIDDEN) {
-                    throw new BadCredentialsException("Invalid cookie");
+                    throw new BadCredentialsException("Invalid cookie", e);
                 }
                 throw e;
             } catch (ParseException e) {
-                e.printStackTrace();
+                throw new BadCredentialsException("Invalid cookie", e);
             }
         } else {
             log.trace("No cookie found");
@@ -87,11 +87,11 @@ public abstract class CustomCookieCollector<T> implements AuthCollector {
                 authorities.addAll(authoritiesCollector.getAuthorities(t));
             } catch (HttpClientErrorException e) {
                 if (e.getStatusCode() == HttpStatus.UNAUTHORIZED || e.getStatusCode() == HttpStatus.FORBIDDEN) {
-                    throw new BadCredentialsException("Invalid cookie");
+                    throw new BadCredentialsException("Invalid cookie", e);
                 }
                 throw e;
             } catch (ParseException e) {
-                e.printStackTrace();
+                throw new BadCredentialsException("Invalid cookie", e);
             }
         } else {
             log.trace("No cookie found");
@@ -122,6 +122,6 @@ public abstract class CustomCookieCollector<T> implements AuthCollector {
     }
 
     public interface AuthoritiesCollector<T> {
-        Set<GrantedAuthority> getAuthorities(T token);
+        Set<GrantedAuthority> getAuthorities(T token) throws ParseException;
     }
 }

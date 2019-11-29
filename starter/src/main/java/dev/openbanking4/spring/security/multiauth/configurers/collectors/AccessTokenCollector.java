@@ -70,14 +70,14 @@ public abstract class AccessTokenCollector<T> implements AuthCollector {
 
             } catch (HttpClientErrorException e) {
                 if (e.getStatusCode() == HttpStatus.UNAUTHORIZED || e.getStatusCode() == HttpStatus.FORBIDDEN) {
-                    throw new BadCredentialsException("Invalid cookie");
+                    throw new BadCredentialsException("Invalid access token", e);
                 }
                 throw e;
             } catch (ParseException e) {
-                e.printStackTrace();
+                throw new BadCredentialsException("Invalid access token", e);
             }
         } else {
-            log.trace("No cookie found");
+            log.trace("No access token found");
         }
         return currentAuthentication;
     }
