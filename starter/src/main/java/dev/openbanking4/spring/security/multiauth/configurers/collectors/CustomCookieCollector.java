@@ -20,10 +20,10 @@
  */
 package dev.openbanking4.spring.security.multiauth.configurers.collectors;
 
+import com.nimbusds.jose.JOSEException;
 import dev.openbanking4.spring.security.multiauth.configurers.AuthCollector;
 import dev.openbanking4.spring.security.multiauth.model.authentication.PasswordLessUserNameAuthentication;
 import lombok.AllArgsConstructor;
-import lombok.Data;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -42,7 +42,6 @@ import java.util.Set;
 @Slf4j
 @ToString
 @AllArgsConstructor
-@Data
 public abstract class CustomCookieCollector<T> implements AuthCollector {
 
     private String collectorName;
@@ -64,8 +63,8 @@ public abstract class CustomCookieCollector<T> implements AuthCollector {
             String tokenSerialised = cookie.getValue();
             log.trace("Token received", tokenSerialised);
             try {
-                T t = getTokenValidator().validate(tokenSerialised);
-                String userName = getUsernameCollector().getUserName(t);
+                T t = tokenValidator.validate(tokenSerialised);
+                String userName = usernameCollector.getUserName(t);
                 return new PasswordLessUserNameAuthentication(userName, Collections.EMPTY_SET);
             } catch (HttpClientErrorException e) {
                 if (e.getStatusCode() == HttpStatus.UNAUTHORIZED || e.getStatusCode() == HttpStatus.FORBIDDEN) {
@@ -74,6 +73,9 @@ public abstract class CustomCookieCollector<T> implements AuthCollector {
                 throw e;
             } catch (ParseException e) {
                 throw new BadCredentialsException("Invalid cookie", e);
+            } catch (JOSEException e) {
+                log.trace("Couldn't parse the access token", e);
+                throw new BadCredentialsException("Invalid access token", e);
             }
         } else {
             log.trace("No cookie found");
@@ -89,7 +91,7 @@ public abstract class CustomCookieCollector<T> implements AuthCollector {
             String tokenSerialised = cookie.getValue();
             log.trace("Token received {} from cookie '{}'", tokenSerialised, cookieName);
             try {
-                T t = getTokenValidator().validate(tokenSerialised);
+                T t = tokenValidator.validate(tokenSerialised);
                 Set<GrantedAuthority> authoritiesFound = authoritiesCollector.getAuthorities(t);
                 log.trace("Authorities founds: {}", authorities);
                 authorities.addAll(authoritiesFound);
@@ -102,6 +104,9 @@ public abstract class CustomCookieCollector<T> implements AuthCollector {
             } catch (ParseException e) {
                 log.trace("Couldn't parse cookie", e);
                 throw new BadCredentialsException("Invalid cookie", e);
+            } catch (JOSEException e) {
+                log.trace("Couldn't parse the access token", e);
+                throw new BadCredentialsException("Invalid access token", e);
             }
         } else {
             log.trace("No cookie found");
@@ -125,7 +130,7 @@ public abstract class CustomCookieCollector<T> implements AuthCollector {
     }
 
     public interface TokenValidator<T> {
-        T validate(String tokenSerialised) throws ParseException;
+        T validate(String tokenSerialised) throws ParseException, JOSEException;
     }
 
     public interface UsernameCollector<T> {
