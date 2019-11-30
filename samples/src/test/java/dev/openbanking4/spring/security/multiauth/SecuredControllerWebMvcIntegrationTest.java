@@ -21,9 +21,6 @@
 package dev.openbanking4.spring.security.multiauth;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.forgerock.cert.psd2.Psd2Role;
-import com.forgerock.cert.psd2.RoleOfPsp;
-import dev.openbanking4.spring.security.multiauth.model.granttypes.PSD2GrantType;
 import dev.openbanking4.spring.security.multiauth.model.granttypes.ScopeGrantType;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -33,7 +30,6 @@ import org.springframework.http.MediaType;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -97,7 +93,7 @@ public class SecuredControllerWebMvcIntegrationTest {
                 .authorities(Collections.EMPTY_SET)
                 .build();
 
-        mvc.perform(get("/whoIAm").contentType(MediaType.APPLICATION_JSON))
+        mvc.perform(get("/whoAmI").contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(content().json(objectMapper.writeValueAsString(userDetailsExpected)));
     }
@@ -111,7 +107,7 @@ public class SecuredControllerWebMvcIntegrationTest {
                 .build();
 
         mvc.perform(
-                    get("/whoIAm")
+                    get("/whoAmI")
                             .contentType(MediaType.APPLICATION_JSON)
                             .cookie(new Cookie("SSO", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0b3RvIiwiZ3JvdXAiOlsiYWRtaW4iLCJjbHViRmFsYWZlbEtpbmciXX0.954F4BxnEPjeWeKlzQ_AFUwRvtT1fVg5qBjA4zOdMkQ"))
                 )
@@ -128,7 +124,7 @@ public class SecuredControllerWebMvcIntegrationTest {
                 .build();
 
         mvc.perform(
-                get("/whoIAm")
+                get("/whoAmI")
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("x-cert", testPSD2Certificate)
         )
@@ -145,7 +141,7 @@ public class SecuredControllerWebMvcIntegrationTest {
                 .build();
 
         mvc.perform(
-                get("/whoIAm")
+                get("/whoAmI")
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("x-cert", testPSD2Certificate)
                         .header("Authorization", "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzY29wZSI6WyJhY2NvdW50cyIsInBheW1lbnRzIl19.NQSGWB3dA3NM7kGJF4DNzP6toEE_ljAbWfZ7S7d_WUk")

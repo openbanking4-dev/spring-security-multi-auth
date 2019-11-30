@@ -20,8 +20,6 @@
  */
 package dev.openbanking4.spring.security.multiauth;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.JWSObject;
 import com.nimbusds.jose.JWSVerifier;
 import com.nimbusds.jose.crypto.MACVerifier;
@@ -32,16 +30,13 @@ import dev.openbanking4.spring.security.multiauth.configurers.collectors.Statele
 import dev.openbanking4.spring.security.multiauth.configurers.collectors.StaticUserCollector;
 import dev.openbanking4.spring.security.multiauth.configurers.collectors.X509Collector;
 import dev.openbanking4.spring.security.multiauth.model.CertificateHeaderFormat;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -52,18 +47,15 @@ import java.util.stream.Collectors;
 @RestController
 @SpringBootApplication
 @EnableWebSecurity
-
 public class AuthenticationApplication {
 
 	public static void main(String[] args) {
 		SpringApplication.run(AuthenticationApplication.class, args);
 	}
 
-	@Autowired
-	private ObjectMapper objectMapper;
-	@GetMapping("/whoIAm")
-	public String whoIAm(Principal principal) throws JsonProcessingException {
-		return objectMapper.writeValueAsString(((Authentication) principal).getPrincipal());
+	@GetMapping("/whoAmI")
+	public Object whoAmI(Principal principal) {
+		return ((Authentication) principal).getPrincipal();
 	}
 
 	@Configuration
@@ -77,7 +69,6 @@ public class AuthenticationApplication {
 					.anyRequest()
 					.permitAll()
 					.and()
-					.authenticationProvider(new CustomAuthProvider())
 					.apply(new MultiAuthenticationCollectorConfigurer<HttpSecurity>()
 
 							/**
@@ -138,19 +129,6 @@ public class AuthenticationApplication {
 									.build())
 					)
 			;
-		}
-	}
-
-	public static class CustomAuthProvider implements AuthenticationProvider {
-		@Override
-		public Authentication authenticate(Authentication authentication) throws AuthenticationException {
-			//You can load more GrantedAuthority based on the user subject, like loading the TPP details from the software ID
-			return authentication;
-		}
-
-		@Override
-		public boolean supports(Class<?> aClass) {
-			return true;
 		}
 	}
 }
