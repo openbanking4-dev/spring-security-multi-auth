@@ -20,54 +20,45 @@
  */
 package dev.openbanking4.spring.security.multiauth;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.JWSObject;
 import com.nimbusds.jose.JWSVerifier;
 import com.nimbusds.jose.crypto.MACVerifier;
 import com.nimbusds.jwt.JWTParser;
 import dev.openbanking4.spring.security.multiauth.configurers.MultiAuthenticationCollectorConfigurer;
-import dev.openbanking4.spring.security.multiauth.configurers.collectors.CustomJwtCookieCollector;
-import dev.openbanking4.spring.security.multiauth.configurers.collectors.StatelessAccessTokenCollector;
-import dev.openbanking4.spring.security.multiauth.configurers.collectors.StaticUserCollector;
-import dev.openbanking4.spring.security.multiauth.configurers.collectors.X509Collector;
+import dev.openbanking4.spring.security.multiauth.configurers.collectors.*;
 import dev.openbanking4.spring.security.multiauth.model.CertificateHeaderFormat;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.security.Principal;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @RestController
 @SpringBootApplication
 @EnableWebSecurity
-
 public class AuthenticationApplication {
 
 	public static void main(String[] args) {
 		SpringApplication.run(AuthenticationApplication.class, args);
 	}
 
-	@Autowired
-	private ObjectMapper objectMapper;
-	@GetMapping("/whoIAm")
-	public String whoIAm(Principal principal) throws JsonProcessingException {
-		return objectMapper.writeValueAsString(((Authentication) principal).getPrincipal());
+	@GetMapping("/whoAmI")
+	public Object whoAmI(Principal principal) {
+		return ((Authentication) principal).getPrincipal();
 	}
 
 	@Configuration
-	static class CookieWebSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter {
+	static class MultiAuthWebSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter {
 
 		@Override
 		protected void configure(HttpSecurity http) throws Exception {
@@ -77,7 +68,6 @@ public class AuthenticationApplication {
 					.anyRequest()
 					.permitAll()
 					.and()
-					.authenticationProvider(new CustomAuthProvider())
 					.apply(new MultiAuthenticationCollectorConfigurer<HttpSecurity>()
 
 							/**
@@ -100,13 +90,28 @@ public class AuthenticationApplication {
 									.build())
 
 							/**
+							 * Authentication via an API key
+							 * The username is extracted by calling your API key service
+							 */
+							.collectorForAuthentication(APIKeyCollector.<User>builder()
+									.collectorName("API-Key")
+									.apiKeyExtractor(req -> req.getParameter("key"))
+									.apiKeyValidator(apiKey -> {
+										//Here call the API key validator service.
+										return new User("bob", "",
+												Stream.of(new SimpleGrantedAuthority("repo-32")).collect(Collectors.toSet()));
+									})
+									.usernameCollector(User::getUsername)
+									.build())
+
+							/**
 							 * Authentication via a certificate
 							 * The username is the certificate subject.
 							 * We don't expect this app to do the SSL termination, therefore we will trust the header x-cert
 							 * populated by the gateway
 							 */
 							.collectorForAuthentication(X509Collector.x509Builder()
-									.collectorName("PSD2-cert")
+									.collectorName("x509-cert")
 									.usernameCollector(certificatesChain -> certificatesChain[0].getSubjectDN().getName())
 									.collectFromHeader(CertificateHeaderFormat.PEM)
 									.headerName("x-cert")
@@ -138,19 +143,6 @@ public class AuthenticationApplication {
 									.build())
 					)
 			;
-		}
-	}
-
-	public static class CustomAuthProvider implements AuthenticationProvider {
-		@Override
-		public Authentication authenticate(Authentication authentication) throws AuthenticationException {
-			//You can load more GrantedAuthority based on the user subject, like loading the TPP details from the software ID
-			return authentication;
-		}
-
-		@Override
-		public boolean supports(Class<?> aClass) {
-			return true;
 		}
 	}
 }

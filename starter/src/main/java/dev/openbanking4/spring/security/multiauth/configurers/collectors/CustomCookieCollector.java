@@ -64,18 +64,22 @@ public abstract class CustomCookieCollector<T> implements AuthCollector {
             log.trace("Token received", tokenSerialised);
             try {
                 T t = tokenValidator.validate(tokenSerialised);
+                log.trace("Cookie valid");
                 String userName = usernameCollector.getUserName(t);
+                log.trace("Username {} found", userName);
                 return new PasswordLessUserNameAuthentication(userName, Collections.EMPTY_SET);
             } catch (HttpClientErrorException e) {
+                log.trace("Cookie not valid");
                 if (e.getStatusCode() == HttpStatus.UNAUTHORIZED || e.getStatusCode() == HttpStatus.FORBIDDEN) {
                     throw new BadCredentialsException("Invalid cookie", e);
                 }
                 throw e;
             } catch (ParseException e) {
+                log.trace("Cookie not valid", e);
                 throw new BadCredentialsException("Invalid cookie", e);
             } catch (JOSEException e) {
-                log.trace("Couldn't parse the access token", e);
-                throw new BadCredentialsException("Invalid access token", e);
+                log.trace("Couldn't parse the cookie", e);
+                throw new BadCredentialsException("Invalid cookie", e);
             }
         } else {
             log.trace("No cookie found");

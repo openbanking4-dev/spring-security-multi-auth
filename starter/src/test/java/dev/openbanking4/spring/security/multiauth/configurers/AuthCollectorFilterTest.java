@@ -23,10 +23,7 @@ package dev.openbanking4.spring.security.multiauth.configurers;
 import com.forgerock.cert.psd2.Psd2Role;
 import com.forgerock.cert.psd2.RoleOfPsp;
 import com.nimbusds.jwt.JWTParser;
-import dev.openbanking4.spring.security.multiauth.configurers.collectors.CustomJwtCookieCollector;
-import dev.openbanking4.spring.security.multiauth.configurers.collectors.PSD2Collector;
-import dev.openbanking4.spring.security.multiauth.configurers.collectors.StatelessAccessTokenCollector;
-import dev.openbanking4.spring.security.multiauth.configurers.collectors.StaticUserCollector;
+import dev.openbanking4.spring.security.multiauth.configurers.collectors.*;
 import dev.openbanking4.spring.security.multiauth.model.CertificateHeaderFormat;
 import dev.openbanking4.spring.security.multiauth.model.granttypes.PSD2GrantType;
 import dev.openbanking4.spring.security.multiauth.model.granttypes.ScopeGrantType;
@@ -48,6 +45,7 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -119,6 +117,15 @@ public class AuthCollectorFilterTest {
             .headerName("x-cert")
             .build();
 
+    private APIKeyCollector apiKeyCollector = APIKeyCollector .<User>builder()
+                .collectorName("API-key-for-test")
+                .apiKeyExtractor(req -> req.getParameter("key"))
+                .apiKeyValidator(apiKey -> new User("toto", "",
+                        Stream.of(new SimpleGrantedAuthority("repo-32")).collect(Collectors.toSet())))
+                .authoritiesCollector(user -> new HashSet<>(user.getAuthorities()))
+                .usernameCollector(User::getUsername)
+                .build();
+
     private StatelessAccessTokenCollector statelessAccessTokenCollector = StatelessAccessTokenCollector.builder()
             .collectorName("stateless-access-token-for-test")
             .tokenValidator(token -> JWTParser.parse(token))
@@ -133,6 +140,7 @@ public class AuthCollectorFilterTest {
                 customJwtCookieCollector,
                 psd2Collector,
                 statelessAccessTokenCollector,
+                apiKeyCollector,
                 staticUserCollector
         ).collect(Collectors.toList());
         AuthCollectorFilter authCollectorFilter = new AuthCollectorFilter(authCollectors, authCollectors);
@@ -166,6 +174,7 @@ public class AuthCollectorFilterTest {
                 customJwtCookieCollector,
                 psd2Collector,
                 statelessAccessTokenCollector,
+                apiKeyCollector,
                 staticUserCollector
         ).collect(Collectors.toList());
         AuthCollectorFilter authCollectorFilter = new AuthCollectorFilter(authCollectors, authCollectors);
@@ -206,6 +215,7 @@ public class AuthCollectorFilterTest {
                 customJwtCookieCollector,
                 psd2Collector,
                 statelessAccessTokenCollector,
+                apiKeyCollector,
                 staticUserCollector
         ).collect(Collectors.toList());
         AuthCollectorFilter authCollectorFilter = new AuthCollectorFilter(authCollectors, authCollectors);
@@ -251,6 +261,7 @@ public class AuthCollectorFilterTest {
                 customJwtCookieCollector,
                 psd2Collector,
                 statelessAccessTokenCollector,
+                apiKeyCollector,
                 staticUserCollector
         ).collect(Collectors.toList());
         AuthCollectorFilter authCollectorFilter = new AuthCollectorFilter(authCollectors, authCollectors);
@@ -294,6 +305,7 @@ public class AuthCollectorFilterTest {
                 customJwtCookieCollector,
                 psd2Collector,
                 statelessAccessTokenCollector,
+                apiKeyCollector,
                 staticUserCollector
         ).collect(Collectors.toList());
         AuthCollectorFilter authCollectorFilter = new AuthCollectorFilter(authCollectors, authCollectors);
@@ -341,6 +353,7 @@ public class AuthCollectorFilterTest {
                 psd2Collector,
                 customJwtCookieCollector,
                 statelessAccessTokenCollector,
+                apiKeyCollector,
                 staticUserCollector
         ).collect(Collectors.toList());
         AuthCollectorFilter authCollectorFilter = new AuthCollectorFilter(authCollectors, authCollectors);
@@ -427,6 +440,7 @@ public class AuthCollectorFilterTest {
         List<AuthCollector> authCollectors = Stream.of(
                 psd2Collector,
                 customJwtCookieCollector,
+                apiKeyCollector,
                 statelessAccessTokenCollector
         ).collect(Collectors.toList());
         AuthCollectorFilter authCollectorFilter = new AuthCollectorFilter(authCollectors, authCollectors);
