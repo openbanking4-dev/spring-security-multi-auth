@@ -115,6 +115,24 @@ public class SecuredControllerWebMvcIntegrationTest {
                 .andExpect(content().json(objectMapper.writeValueAsString(userDetailsExpected)));
     }
 
+
+    @Test
+    public void testAPIKey() throws Exception {
+        UserDetails userDetailsExpected = User.builder()
+                .username("bob")
+                .password("")
+                .authorities(Collections.EMPTY_SET)
+                .build();
+
+        mvc.perform(
+                get("/whoAmI")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .param("key", "1NiIsInR5cCI6Ik")
+        )
+                .andExpect(status().isOk())
+                .andExpect(content().json(objectMapper.writeValueAsString(userDetailsExpected)));
+    }
+
     @Test
     public void testSendingACert() throws Exception {
         UserDetails userDetailsExpected = User.builder()
