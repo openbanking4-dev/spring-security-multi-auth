@@ -74,7 +74,7 @@ Add the following dependency:
 <dependency>
     <groupId>dev.openbanking4.spring.security</groupId>
     <artifactId>spring-security-multi-auth-starter</artifactId>
-    <version>${project.version}</version>
+    <version>{project.version}</version>
 </dependency>
 ```
 
