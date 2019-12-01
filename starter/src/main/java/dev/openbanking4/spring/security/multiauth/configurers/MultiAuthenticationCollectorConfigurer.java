@@ -27,7 +27,9 @@ import org.springframework.security.core.userdetails.AuthenticationUserDetailsSe
 import org.springframework.security.core.userdetails.UserDetailsByNameServiceWrapper;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.AuthenticationEntryPoint;
+import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.Http403ForbiddenEntryPoint;
+import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationProvider;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
@@ -41,7 +43,7 @@ public class MultiAuthenticationCollectorConfigurer<H extends HttpSecurityBuilde
     private List<AuthCollector> authentificationCollectors = new ArrayList<>();
     private List<AuthCollector> authorizationCollectors = new ArrayList<>();
     private AuthenticationUserDetailsService<PreAuthenticatedAuthenticationToken> authenticationUserDetailsService;
-
+    private AuthenticationFailureHandler authenticationFailureHandler = new SimpleUrlAuthenticationFailureHandler();
 
     public MultiAuthenticationCollectorConfigurer<H> collector(AuthCollector authCollector) {
         this.authentificationCollectors.add(authCollector);
@@ -60,7 +62,7 @@ public class MultiAuthenticationCollectorConfigurer<H extends HttpSecurityBuilde
     }
 
     public void configure(H http) {
-        AuthCollectorFilter filter = new AuthCollectorFilter(authentificationCollectors, authorizationCollectors);
+        AuthCollectorFilter filter = new AuthCollectorFilter(authentificationCollectors, authorizationCollectors, authenticationFailureHandler);
         http.addFilterBefore(filter, BasicAuthenticationFilter.class);
         PreAuthenticatedAuthenticationProvider authenticationProvider = new PreAuthenticatedAuthenticationProvider();
         authenticationProvider.setPreAuthenticatedUserDetailsService(this.getAuthenticationUserDetailsService(http));

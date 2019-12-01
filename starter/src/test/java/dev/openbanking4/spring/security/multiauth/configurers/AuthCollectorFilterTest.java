@@ -143,7 +143,11 @@ public class AuthCollectorFilterTest {
                 apiKeyCollector,
                 staticUserCollector
         ).collect(Collectors.toList());
-        AuthCollectorFilter authCollectorFilter = new AuthCollectorFilter(authCollectors, authCollectors);
+        AuthCollectorFilter authCollectorFilter = AuthCollectorFilter
+                .builder()
+                .authenticationCollectors(authCollectors)
+                .authorizationCollectors(authCollectors)
+                .build();
 
         //When
         HttpServletRequest mockedRequest = Mockito.mock(HttpServletRequest.class);
@@ -177,8 +181,11 @@ public class AuthCollectorFilterTest {
                 apiKeyCollector,
                 staticUserCollector
         ).collect(Collectors.toList());
-        AuthCollectorFilter authCollectorFilter = new AuthCollectorFilter(authCollectors, authCollectors);
-
+        AuthCollectorFilter authCollectorFilter = AuthCollectorFilter
+                .builder()
+                .authenticationCollectors(authCollectors)
+                .authorizationCollectors(authCollectors)
+                .build();
         //When
         HttpServletRequest mockedRequest = Mockito.mock(HttpServletRequest.class);
         RequestContextHolder.setRequestAttributes(new ServletWebRequest(mockedRequest));
@@ -218,8 +225,11 @@ public class AuthCollectorFilterTest {
                 apiKeyCollector,
                 staticUserCollector
         ).collect(Collectors.toList());
-        AuthCollectorFilter authCollectorFilter = new AuthCollectorFilter(authCollectors, authCollectors);
-
+        AuthCollectorFilter authCollectorFilter = AuthCollectorFilter
+                .builder()
+                .authenticationCollectors(authCollectors)
+                .authorizationCollectors(authCollectors)
+                .build();
         //When
         HttpServletRequest mockedRequest = Mockito.mock(HttpServletRequest.class);
         RequestContextHolder.setRequestAttributes(new ServletWebRequest(mockedRequest));
@@ -264,8 +274,11 @@ public class AuthCollectorFilterTest {
                 apiKeyCollector,
                 staticUserCollector
         ).collect(Collectors.toList());
-        AuthCollectorFilter authCollectorFilter = new AuthCollectorFilter(authCollectors, authCollectors);
-
+        AuthCollectorFilter authCollectorFilter = AuthCollectorFilter
+                .builder()
+                .authenticationCollectors(authCollectors)
+                .authorizationCollectors(authCollectors)
+                .build();
         //When
         HttpServletRequest mockedRequest = Mockito.mock(HttpServletRequest.class);
         RequestContextHolder.setRequestAttributes(new ServletWebRequest(mockedRequest));
@@ -308,8 +321,11 @@ public class AuthCollectorFilterTest {
                 apiKeyCollector,
                 staticUserCollector
         ).collect(Collectors.toList());
-        AuthCollectorFilter authCollectorFilter = new AuthCollectorFilter(authCollectors, authCollectors);
-
+        AuthCollectorFilter authCollectorFilter = AuthCollectorFilter
+                .builder()
+                .authenticationCollectors(authCollectors)
+                .authorizationCollectors(authCollectors)
+                .build();
         //When
         HttpServletRequest mockedRequest = Mockito.mock(HttpServletRequest.class);
         RequestContextHolder.setRequestAttributes(new ServletWebRequest(mockedRequest));
@@ -356,8 +372,11 @@ public class AuthCollectorFilterTest {
                 apiKeyCollector,
                 staticUserCollector
         ).collect(Collectors.toList());
-        AuthCollectorFilter authCollectorFilter = new AuthCollectorFilter(authCollectors, authCollectors);
-
+        AuthCollectorFilter authCollectorFilter = AuthCollectorFilter
+                .builder()
+                .authenticationCollectors(authCollectors)
+                .authorizationCollectors(authCollectors)
+                .build();
         //When
         HttpServletRequest mockedRequest = Mockito.mock(HttpServletRequest.class);
         RequestContextHolder.setRequestAttributes(new ServletWebRequest(mockedRequest));
@@ -403,8 +422,11 @@ public class AuthCollectorFilterTest {
         List<AuthCollector> authorisationsCollectors = Stream.of(
                 statelessAccessTokenCollector
         ).collect(Collectors.toList());
-        AuthCollectorFilter authCollectorFilter = new AuthCollectorFilter(authenticationsCollectors, authorisationsCollectors);
-
+        AuthCollectorFilter authCollectorFilter = AuthCollectorFilter
+                .builder()
+                .authenticationCollectors(authenticationsCollectors)
+                .authorizationCollectors(authorisationsCollectors)
+                .build();
         //When
         HttpServletRequest mockedRequest = Mockito.mock(HttpServletRequest.class);
         RequestContextHolder.setRequestAttributes(new ServletWebRequest(mockedRequest));
@@ -443,8 +465,11 @@ public class AuthCollectorFilterTest {
                 apiKeyCollector,
                 statelessAccessTokenCollector
         ).collect(Collectors.toList());
-        AuthCollectorFilter authCollectorFilter = new AuthCollectorFilter(authCollectors, authCollectors);
-
+        AuthCollectorFilter authCollectorFilter = AuthCollectorFilter
+                .builder()
+                .authenticationCollectors(authCollectors)
+                .authorizationCollectors(authCollectors)
+                .build();
         //When
         HttpServletRequest mockedRequest = Mockito.mock(HttpServletRequest.class);
         RequestContextHolder.setRequestAttributes(new ServletWebRequest(mockedRequest));
