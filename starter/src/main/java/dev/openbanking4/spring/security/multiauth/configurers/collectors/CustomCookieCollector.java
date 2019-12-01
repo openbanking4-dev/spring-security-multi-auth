@@ -144,4 +144,14 @@ public abstract class CustomCookieCollector<T> implements AuthCollector {
     public interface AuthoritiesCollector<T> {
         Set<GrantedAuthority> getAuthorities(T token) throws ParseException;
     }
+
+    @Override
+    public boolean isSetupForAuthentication() {
+        return usernameCollector != null;
+    }
+
+    @Override
+    public boolean isSetupForAuthorisation() {
+        return authoritiesCollector != null;
+    }
 }

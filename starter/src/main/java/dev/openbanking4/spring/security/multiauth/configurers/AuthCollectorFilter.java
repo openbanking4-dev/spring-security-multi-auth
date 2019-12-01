@@ -46,6 +46,13 @@ public class AuthCollectorFilter extends OncePerRequestFilter {
         log.trace("Going through all the collectors to authenticate the request, in the order of setup");
         for (AuthCollector authCollector : authenticationCollectors) {
             log.trace("Collector name: '{}'", authCollector.collectorName());
+
+            log.trace("Verify is setup correctly to handle authentication");
+            if (!authCollector.isSetupForAuthentication()) {
+                log.warn("You forgot to setup the username collector. Either setup a username " +
+                        "collector or setup this collector '" + authCollector.collectorName() + "' to only handle authorization");
+                continue;
+            }
             currentAuthentication = authCollector.collectAuthentication(request);
             if (currentAuthentication != null) {
                 log.trace("Collector founds an authentication, skip next collectors");
@@ -66,6 +73,12 @@ public class AuthCollectorFilter extends OncePerRequestFilter {
         log.trace("Going through all the collectors to authorize the request");
         for (AuthCollector authCollector : authorizationCollectors) {
             log.trace("Collector name: '{}'", authCollector.collectorName());
+            log.trace("Verify is setup correctly to handle authorisation");
+            if (!authCollector.isSetupForAuthorisation()) {
+                log.warn("You forgot to setup the authorities collector. Either setup an authorities " +
+                        "collector or setup this collector '" + authCollector.collectorName() + "' to only handle authentication");
+                continue;
+            }
             currentAuthentication = authCollector.collectAuthorisation(request, currentAuthentication);
         }
         if (currentAuthentication != null) {

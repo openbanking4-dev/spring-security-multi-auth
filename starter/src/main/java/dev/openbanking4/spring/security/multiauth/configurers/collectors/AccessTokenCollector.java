@@ -100,11 +100,17 @@ public abstract class AccessTokenCollector<T> implements AuthCollector {
         T validate(String tokenSerialised) throws ParseException, JOSEException;
     }
 
-    public interface UsernameCollector<T> {
-        String getUserName(T token) throws ParseException;
-    }
-
     public interface AuthoritiesCollector<T> {
         Set<GrantedAuthority> getAuthorities(T token) throws ParseException;
+    }
+
+    @Override
+    public boolean isSetupForAuthentication() {
+        return false;
+    }
+
+    @Override
+    public boolean isSetupForAuthorisation() {
+        return authoritiesCollector != null;
     }
 }

@@ -153,4 +153,14 @@ public class X509Collector implements AuthCollector {
     public interface AuthoritiesCollector {
         Set<GrantedAuthority> getAuthorities(X509Certificate[] certificatesChain);
     }
+
+    @Override
+    public boolean isSetupForAuthentication() {
+        return usernameCollector != null;
+    }
+
+    @Override
+    public boolean isSetupForAuthorisation() {
+        return authoritiesCollector != null;
+    }
 }
