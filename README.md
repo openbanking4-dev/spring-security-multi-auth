@@ -1,6 +1,9 @@
-[![Build Status](https://img.shields.io/endpoint.svg?url=https%3A%2F%2Factions-badge.atrox.dev%2Fopenbanking4-dev%2Fspring-security-multi-auth%2Fbadge%3Fref%3Dmaster&style=flat)](https://actions-badge.atrox.dev/openbanking4-dev/spring-security-multi-auth/goto?ref=master)
-![GitHub](https://img.shields.io/github/license/openbanking4-dev/spring-security-multi-auth)
-[![codecov](https://codecov.io/gh/openbanking4-dev/spring-security-multi-auth/branch/master/graph/badge.svg)](https://codecov.io/gh/openbanking4-dev/spring-security-multi-auth)
+| |Current Status|
+|---|---|
+|Build|[![Build Status](https://img.shields.io/endpoint.svg?url=https%3A%2F%2Factions-badge.atrox.dev%2Fopenbanking4-dev%2Fspring-security-multi-auth%2Fbadge%3Fref%3Dmaster&style=flat)](https://actions-badge.atrox.dev/openbanking4-dev/spring-security-multi-auth/goto?ref=master)|
+|Code coverage|[![codecov](https://codecov.io/gh/openbanking4-dev/spring-security-multi-auth/branch/master/graph/badge.svg)](https://codecov.io/gh/openbanking4-dev/spring-security-multi-auth)
+|Bintray|[![Bintray](https://img.shields.io/bintray/v/openbanking4-dev/openbanking4-dev/spring-security-multi-auth.svg?maxAge=2592000)](https://bintray.com/openbanking4-dev/openbanking4-dev/spring-security-multi-auth)|
+|License|![license](https://img.shields.io/github/license/ACRA/acra.svg)|
 
 Spring security multi-auth 
 ========================
