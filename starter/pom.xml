@@ -30,7 +30,7 @@
     <parent>
         <groupId>dev.openbanking4.spring.security</groupId>
         <artifactId>spring-security-multi-auth</artifactId>
-        <version>0.0.45</version>
+        <version>0.0.46-SNAPSHOT</version>
     </parent>
 
     <dependencies>
