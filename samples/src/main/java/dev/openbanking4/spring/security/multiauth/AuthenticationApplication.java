@@ -63,85 +63,84 @@ public class AuthenticationApplication {
 		@Override
 		protected void configure(HttpSecurity http) throws Exception {
 			http
+				.authorizeRequests()
+				.anyRequest()
+				.permitAll()
+				.and()
+				.apply(new MultiAuthenticationCollectorConfigurer<HttpSecurity>()
+					/**
+					 * Authentication & authorisation via a cookie 'SSO'
+					 * The authorities are extracted from the 'group' claim
+					 * The username is extracted from the 'sub' claim
+					 * Note: JWT cookies expected to be signed with HMAC with "Qt5y2isMydGwVuREoIomK9Ei70EoFQKH0GpcbtJ4" as a secret
+					 */
+					.collector(CustomJwtCookieCollector.builder()
+						.collectorName("Cookie-SESSION")
+						.authoritiesCollector(token -> token.getJWTClaimsSet().getStringListClaim("group").stream()
+								.map(g -> new SimpleGrantedAuthority(g)).collect(Collectors.toSet()))
+						.tokenValidator(tokenSerialised -> {
+							JWSObject jwsObject = JWSObject.parse(tokenSerialised);
+							JWSVerifier verifier = new MACVerifier("Qt5y2isMydGwVuREoIomK9Ei70EoFQKH0GpcbtJ4");
+							jwsObject.verify(verifier);
+							return JWTParser.parse(tokenSerialised);
+						})
+						.cookieName("SSO")
+						.build())
 
-					.authorizeRequests()
-					.anyRequest()
-					.permitAll()
-					.and()
-					.apply(new MultiAuthenticationCollectorConfigurer<HttpSecurity>()
+					/**
+					 * Authentication via an API key
+					 * The username is extracted by calling your API key service
+					 */
+					.collectorForAuthentication(APIKeyCollector.<User>builder()
+						.collectorName("API-Key")
+						.apiKeyExtractor(req -> req.getParameter("key"))
+						.apiKeyValidator(apiKey -> {
+							//Here call the API key validator service.
+							return new User("bob", "",
+									Stream.of(new SimpleGrantedAuthority("repo-32")).collect(Collectors.toSet()));
+						})
+						.usernameCollector(User::getUsername)
+						.build())
 
-							/**
-							 * Authentication & authorisation via a cookie 'SSO'
-							 * The authorities are extracted from the 'group' claim
-							 * The username is extracted from the 'sub' claim
-							 * Note: JWT cookies expected to be signed with HMAC with "password" as a secret
-							 */
-							.collector(CustomJwtCookieCollector.builder()
-									.collectorName("Cookie-SESSION")
-									.authoritiesCollector(token -> token.getJWTClaimsSet().getStringListClaim("group").stream()
-											.map(g -> new SimpleGrantedAuthority(g)).collect(Collectors.toSet()))
-									.tokenValidator(tokenSerialised -> {
-										JWSObject jwsObject = JWSObject.parse(tokenSerialised);
-										JWSVerifier verifier = new MACVerifier("Qt5y2isMydGwVuREoIomK9Ei70EoFQKH0GpcbtJ4");
-										jwsObject.verify(verifier);
-										return JWTParser.parse(tokenSerialised);
-									})
-									.cookieName("SSO")
-									.build())
+					/**
+					 * Authentication via a certificate
+					 * The username is the certificate subject.
+					 * We don't expect this app to do the SSL termination, therefore we will trust the header x-cert
+					 * populated by the gateway
+					 */
+					.collectorForAuthentication(X509Collector.x509Builder()
+						.collectorName("x509-cert")
+						.usernameCollector(certificatesChain -> certificatesChain[0].getSubjectDN().getName())
+						.collectFromHeader(CertificateHeaderFormat.PEM)
+						.headerName("x-cert")
+						.build())
 
-							/**
-							 * Authentication via an API key
-							 * The username is extracted by calling your API key service
-							 */
-							.collectorForAuthentication(APIKeyCollector.<User>builder()
-									.collectorName("API-Key")
-									.apiKeyExtractor(req -> req.getParameter("key"))
-									.apiKeyValidator(apiKey -> {
-										//Here call the API key validator service.
-										return new User("bob", "",
-												Stream.of(new SimpleGrantedAuthority("repo-32")).collect(Collectors.toSet()));
-									})
-									.usernameCollector(User::getUsername)
-									.build())
-
-							/**
-							 * Authentication via a certificate
-							 * The username is the certificate subject.
-							 * We don't expect this app to do the SSL termination, therefore we will trust the header x-cert
-							 * populated by the gateway
-							 */
-							.collectorForAuthentication(X509Collector.x509Builder()
-									.collectorName("x509-cert")
-									.usernameCollector(certificatesChain -> certificatesChain[0].getSubjectDN().getName())
-									.collectFromHeader(CertificateHeaderFormat.PEM)
-									.headerName("x-cert")
-									.build())
-
-							/**
-							 * Authorization via an access token
-							 * The authorities are extracted from the 'scope' claim
-							 * Note: For simplification, the access token is signed with HMAC. In a real scenario, we would have
-							 * called the JWK_URI of the AS
-							 */
-							.collectorForAuthorzation(StatelessAccessTokenCollector.builder()
-									.collectorName("stateless-access-token")
-									.tokenValidator(tokenSerialised -> {
-										JWSObject jwsObject = JWSObject.parse(tokenSerialised);
-										JWSVerifier verifier = new MACVerifier("Qt5y2isMydGwVuREoIomK9Ei70EoFQKH0GpcbtJ4");
-										jwsObject.verify(verifier);
-										return JWTParser.parse(tokenSerialised);
-									})
-									.build()
-							)
-							/**
-							 * Static authentication
-							 * If no authentication was possible with the previous collector, we default to the anonymous user
-							 */
-							.collectorForAuthentication(StaticUserCollector.builder()
-									.collectorName("StaticUser-anonymous")
-									.usernameCollector(() -> "anonymous")
-									.build())
+					/**
+					 * Authorization via an access token
+					 * The authorities are extracted from the 'scope' claim
+					 * Note: For simplification, the access token is signed with HMAC, using the secret
+					 * 'Qt5y2isMydGwVuREoIomK9Ei70EoFQKH0GpcbtJ4'. In a real scenario, we would have called the JWK_URI
+					 * of the AS
+					 */
+					.collectorForAuthorzation(StatelessAccessTokenCollector.builder()
+						.collectorName("stateless-access-token")
+						.tokenValidator(tokenSerialised -> {
+							JWSObject jwsObject = JWSObject.parse(tokenSerialised);
+							JWSVerifier verifier = new MACVerifier("Qt5y2isMydGwVuREoIomK9Ei70EoFQKH0GpcbtJ4");
+							jwsObject.verify(verifier);
+							return JWTParser.parse(tokenSerialised);
+						})
+						.build()
 					)
+					/**
+					 * Static authentication
+					 * If no authentication was possible with the previous collector, we default to the anonymous user
+					 */
+					.collectorForAuthentication(StaticUserCollector.builder()
+						.collectorName("StaticUser-anonymous")
+						.usernameCollector(() -> "anonymous")
+						.build())
+				)
 			;
 		}
 	}
