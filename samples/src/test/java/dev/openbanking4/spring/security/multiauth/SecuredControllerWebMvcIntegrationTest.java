@@ -27,6 +27,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -162,9 +163,26 @@ public class SecuredControllerWebMvcIntegrationTest {
                 get("/whoAmI")
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("x-cert", testPSD2Certificate)
-                        .header("Authorization", "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzY29wZSI6WyJhY2NvdW50cyIsInBheW1lbnRzIl19.NQSGWB3dA3NM7kGJF4DNzP6toEE_ljAbWfZ7S7d_WUk")
+                        .header("Authorization", "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzY29wZSI6WyJhY2NvdW50cyIsInBheW1lbnRzIl0sImNuZiI6eyJ4NXQjUzI1NiI6IjUzNjlhYmUzYjEyMDI1Y2RkZDk4NDUwZTViZWYyNTUwYzAzNmNhNzkifX0.dfrByVbVWSKPi0_OQQowaV2M9k_miFhNWdAL_VrQpXs")
         )
                 .andExpect(status().isOk())
                 .andExpect(content().json(objectMapper.writeValueAsString(userDetailsExpected)));
+    }
+
+    @Test(expected = BadCredentialsException.class)
+    public void testUnmatchingAccessTokenAndCert() throws Exception {
+        UserDetails userDetailsExpected = User.builder()
+                .username("CN=0015800001HQQrpAAH, OID.2.5.4.97=PSDGB-TEST-123456, O=Test Bank PLC, C=GB")
+                .password("")
+                .authorities(Stream.of( new ScopeGrantType("accounts"), new ScopeGrantType("payments")).collect(Collectors.toSet()))
+                .build();
+
+        mvc.perform(
+                get("/whoAmI")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("x-cert", testPSD2Certificate)
+                        .header("Authorization", "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzY29wZSI6WyJhY2NvdW50cyIsInBheW1lbnRzIl0sImNuZiI6eyJ4NXQjUzI1NiI6Im5vdE1hdGNoIn19.laIq105yqn141oAluHRjexF_XY0TQkgqzCDK9JNpOpE")
+        )
+                .andExpect(status().isForbidden());
     }
 }

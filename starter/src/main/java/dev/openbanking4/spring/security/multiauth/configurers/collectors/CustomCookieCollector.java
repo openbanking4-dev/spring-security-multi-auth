@@ -22,13 +22,13 @@ package dev.openbanking4.spring.security.multiauth.configurers.collectors;
 
 import com.nimbusds.jose.JOSEException;
 import dev.openbanking4.spring.security.multiauth.configurers.AuthCollector;
+import dev.openbanking4.spring.security.multiauth.model.authentication.AuthenticationWithEditableAuthorities;
 import dev.openbanking4.spring.security.multiauth.model.authentication.PasswordLessUserNameAuthentication;
 import lombok.AllArgsConstructor;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.web.client.HttpClientErrorException;
 
@@ -56,7 +56,7 @@ public abstract class CustomCookieCollector<T> implements AuthCollector {
     }
 
     @Override
-    public Authentication collectAuthentication(HttpServletRequest request) {
+    public AuthenticationWithEditableAuthorities collectAuthentication(HttpServletRequest request) {
         log.trace("Looking for cookies");
         Cookie cookie = getCookie(request, cookieName);
         if (cookie != null) {
@@ -88,7 +88,7 @@ public abstract class CustomCookieCollector<T> implements AuthCollector {
     }
 
     @Override
-    public Authentication collectAuthorisation(HttpServletRequest request, Authentication currentAuthentication) {
+    public AuthenticationWithEditableAuthorities collectAuthorisation(HttpServletRequest request, AuthenticationWithEditableAuthorities currentAuthentication) {
         Set<GrantedAuthority> authorities = new HashSet<>();
         Cookie cookie = getCookie(request, cookieName);
         if (cookie != null) {
@@ -115,11 +115,8 @@ public abstract class CustomCookieCollector<T> implements AuthCollector {
         } else {
             log.trace("No cookie found");
         }
-        authorities.addAll(currentAuthentication.getAuthorities());
         log.trace("Final authorities merged with previous authorities: {}", authorities);
-        PasswordLessUserNameAuthentication passwordLessUserNameAuthentication = new PasswordLessUserNameAuthentication(currentAuthentication.getName(), authorities);
-        passwordLessUserNameAuthentication.setAuthenticated(currentAuthentication.isAuthenticated());
-        return passwordLessUserNameAuthentication;
+        return currentAuthentication.addAuthorities(authorities);
     }
 
     private Cookie getCookie(HttpServletRequest request, String name) {

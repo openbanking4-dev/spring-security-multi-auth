@@ -25,10 +25,12 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
-public class PasswordLessUserNameAuthentication extends AbstractAuthenticationToken {
+public class PasswordLessUserNameAuthentication extends AbstractAuthenticationToken implements AuthenticationWithEditableAuthorities {
 
-    private Object principal;
+    private User principal;
 
     public PasswordLessUserNameAuthentication(String username, Collection<? extends GrantedAuthority> authorities) {
         super(authorities);
@@ -43,5 +45,15 @@ public class PasswordLessUserNameAuthentication extends AbstractAuthenticationTo
     @Override
     public Object getPrincipal() {
         return principal;
+    }
+
+    @Override
+    public AuthenticationWithEditableAuthorities addAuthorities(Collection<GrantedAuthority> authorities) {
+        Set<GrantedAuthority> concat = new HashSet<>();
+        concat.addAll(authorities);
+        concat.addAll(principal.getAuthorities());
+        PasswordLessUserNameAuthentication passwordLessUserNameAuthentication = new PasswordLessUserNameAuthentication(principal.getUsername(), concat);
+        passwordLessUserNameAuthentication.setAuthenticated(this.isAuthenticated());
+        return passwordLessUserNameAuthentication;
     }
 }

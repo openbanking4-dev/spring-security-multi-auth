@@ -20,9 +20,9 @@
  */
 package dev.openbanking4.spring.security.multiauth.configurers;
 
+import dev.openbanking4.spring.security.multiauth.model.authentication.AuthenticationWithEditableAuthorities;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -42,7 +42,7 @@ public class AuthCollectorFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws ServletException, IOException {
-        Authentication currentAuthentication = null;
+        AuthenticationWithEditableAuthorities currentAuthentication = null;
         log.trace("Going through all the collectors to authenticate the request, in the order of setup");
         for (AuthCollector authCollector : authenticationCollectors) {
             log.trace("Collector name: '{}'", authCollector.collectorName());
@@ -79,7 +79,7 @@ public class AuthCollectorFilter extends OncePerRequestFilter {
                         "collector or setup this collector '" + authCollector.collectorName() + "' to only handle authentication");
                 continue;
             }
-            currentAuthentication = authCollector.collectAuthorisation(request, currentAuthentication);
+            currentAuthentication = authCollector.collectAuthorisation(request, (AuthenticationWithEditableAuthorities) currentAuthentication);
         }
         if (currentAuthentication != null) {
             log.trace("Authentication computed by the multi-auth: {}", currentAuthentication);

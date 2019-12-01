@@ -26,16 +26,18 @@ import org.springframework.security.core.userdetails.User;
 
 import java.security.cert.X509Certificate;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
-public class X509Authentication extends AbstractAuthenticationToken {
+public class X509Authentication extends AbstractAuthenticationToken implements AuthenticationWithEditableAuthorities {
 
-    private Object principal;
-    private X509Certificate[] chain;
+    protected User principal;
+    protected X509Certificate[] chain;
 
 
     public X509Authentication(String username, Collection<? extends GrantedAuthority> authorities, X509Certificate[] chain) {
         super(authorities);
-        this.principal =  new User(username, "", authorities);
+        this.principal = new User(username, "", authorities);
         this.chain = chain;
     }
 
@@ -51,5 +53,15 @@ public class X509Authentication extends AbstractAuthenticationToken {
 
     public X509Certificate[] getCertificateChain() {
         return chain;
+    }
+
+    @Override
+    public AuthenticationWithEditableAuthorities addAuthorities(Collection<GrantedAuthority> authorities) {
+        Set<GrantedAuthority> concat = new HashSet<>();
+        concat.addAll(authorities);
+        concat.addAll(principal.getAuthorities());
+        X509Authentication x509Authentication = new X509Authentication(principal.getUsername(), concat, chain);
+        x509Authentication.setAuthenticated(this.isAuthenticated());
+        return x509Authentication;
     }
 }

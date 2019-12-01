@@ -23,13 +23,17 @@ package dev.openbanking4.spring.security.multiauth;
 import com.nimbusds.jose.JWSObject;
 import com.nimbusds.jose.JWSVerifier;
 import com.nimbusds.jose.crypto.MACVerifier;
+import com.nimbusds.jwt.JWT;
 import com.nimbusds.jwt.JWTParser;
 import dev.openbanking4.spring.security.multiauth.configurers.MultiAuthenticationCollectorConfigurer;
 import dev.openbanking4.spring.security.multiauth.configurers.collectors.*;
 import dev.openbanking4.spring.security.multiauth.model.CertificateHeaderFormat;
+import dev.openbanking4.spring.security.multiauth.model.authentication.X509Authentication;
+import net.minidev.json.JSONObject;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
@@ -39,7 +43,12 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.xml.bind.DatatypeConverter;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.security.Principal;
+import java.security.cert.CertificateEncodingException;
+import java.security.cert.X509Certificate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -124,11 +133,35 @@ public class AuthenticationApplication {
 					 */
 					.collectorForAuthorzation(StatelessAccessTokenCollector.builder()
 						.collectorName("stateless-access-token")
-						.tokenValidator(tokenSerialised -> {
+						.tokenValidator((tokenSerialised, currentAuthentication) -> {
 							JWSObject jwsObject = JWSObject.parse(tokenSerialised);
 							JWSVerifier verifier = new MACVerifier("Qt5y2isMydGwVuREoIomK9Ei70EoFQKH0GpcbtJ4");
 							jwsObject.verify(verifier);
-							return JWTParser.parse(tokenSerialised);
+							JWT jwt = JWTParser.parse(tokenSerialised);
+							JSONObject cnf = jwt.getJWTClaimsSet().getJSONObjectClaim("cnf");
+							if (cnf != null) {
+								// We need to verify the token binding
+								String certificateThumbprint = cnf.getAsString("x5t#S256");
+								if (certificateThumbprint == null) {
+									throw new BadCredentialsException("Claim 'x5t#S256' is not defined but cnf present. Access token format is invalid.");
+								}
+								if (!(currentAuthentication instanceof X509Authentication)) {
+									throw new BadCredentialsException("Request not authenticated with a client cert");
+								}
+								X509Authentication x509Authentication = (X509Authentication) currentAuthentication;
+								String clientCertThumbprint;
+								try {
+									clientCertThumbprint = getThumbprint(x509Authentication.getCertificateChain()[0]);
+								} catch (NoSuchAlgorithmException | CertificateEncodingException e) {
+									throw new RuntimeException("Can't compute thumbprint of client certificate", e);
+								}
+								if (!certificateThumbprint.equals(clientCertThumbprint)) {
+									throw new BadCredentialsException("The thumbprint from the client certificate '"
+											+ clientCertThumbprint + "' doesn't match the one specify in the access token '" + certificateThumbprint + "'");
+								}
+							}
+
+							return jwt;
 						})
 						.build()
 					)
@@ -143,5 +176,15 @@ public class AuthenticationApplication {
 				)
 			;
 		}
+	}
+
+	private static String getThumbprint(X509Certificate cert)
+			throws NoSuchAlgorithmException, CertificateEncodingException {
+		MessageDigest md = MessageDigest.getInstance("SHA-1");
+		byte[] der = cert.getEncoded();
+		md.update(der);
+		byte[] digest = md.digest();
+		String digestHex = DatatypeConverter.printHexBinary(digest);
+		return digestHex.toLowerCase();
 	}
 }

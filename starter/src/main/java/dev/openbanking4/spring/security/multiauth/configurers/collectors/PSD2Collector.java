@@ -27,10 +27,10 @@ import com.forgerock.cert.exception.InvalidPsd2EidasCertificate;
 import com.forgerock.cert.psd2.Psd2QcStatement;
 import com.forgerock.cert.psd2.RolesOfPsp;
 import dev.openbanking4.spring.security.multiauth.model.CertificateHeaderFormat;
+import dev.openbanking4.spring.security.multiauth.model.authentication.AuthenticationWithEditableAuthorities;
 import dev.openbanking4.spring.security.multiauth.model.authentication.PSD2Authentication;
 import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 
 import java.security.cert.X509Certificate;
@@ -84,10 +84,9 @@ public class PSD2Collector extends X509Collector {
 
 
     @Override
-    protected Authentication createAuthentication(Authentication currentAuthentication, X509Certificate[] certificatesChain, Set<GrantedAuthority> authorities) {
+    protected AuthenticationWithEditableAuthorities createAuthentication(AuthenticationWithEditableAuthorities currentAuthentication, X509Certificate[] certificatesChain, Set<GrantedAuthority> authorities) {
         try {
             Psd2CertInfo psd2CertInfo = new Psd2CertInfo(certificatesChain);
-
             PSD2Authentication psd2Authentication = new PSD2Authentication(currentAuthentication.getName(), authorities, certificatesChain, psd2CertInfo);
             psd2Authentication.setAuthenticated(currentAuthentication.isAuthenticated());
             return psd2Authentication;

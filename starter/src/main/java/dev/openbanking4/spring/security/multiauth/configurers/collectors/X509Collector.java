@@ -22,12 +22,11 @@ package dev.openbanking4.spring.security.multiauth.configurers.collectors;
 
 import dev.openbanking4.spring.security.multiauth.configurers.AuthCollector;
 import dev.openbanking4.spring.security.multiauth.model.CertificateHeaderFormat;
-import dev.openbanking4.spring.security.multiauth.model.authentication.PasswordLessUserNameAuthentication;
+import dev.openbanking4.spring.security.multiauth.model.authentication.AuthenticationWithEditableAuthorities;
 import dev.openbanking4.spring.security.multiauth.model.authentication.X509Authentication;
 import dev.openbanking4.spring.security.multiauth.utils.RequestUtils;
 import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.web.context.request.RequestContextHolder;
 
@@ -66,7 +65,7 @@ public class X509Collector implements AuthCollector {
     }
 
     @Override
-    public Authentication collectAuthentication(HttpServletRequest request) {
+    public AuthenticationWithEditableAuthorities collectAuthentication(HttpServletRequest request) {
 
         X509Certificate[] certificatesChain = getCertificatesFromRequest(request);
 
@@ -82,12 +81,12 @@ public class X509Collector implements AuthCollector {
             return null;
         }
 
-        return new PasswordLessUserNameAuthentication(username, Collections.EMPTY_SET);
+        return new X509Authentication(username, Collections.EMPTY_SET, certificatesChain);
     }
 
 
     @Override
-    public Authentication collectAuthorisation(HttpServletRequest request, Authentication currentAuthentication) {
+    public AuthenticationWithEditableAuthorities collectAuthorisation(HttpServletRequest request, AuthenticationWithEditableAuthorities currentAuthentication) {
 
         X509Certificate[] certificatesChain = getCertificatesFromRequest(request);
 
@@ -101,7 +100,6 @@ public class X509Collector implements AuthCollector {
 
         authorities.addAll(currentAuthentication.getAuthorities());
         log.trace("Final authorities merged with previous authorities: {}", authorities);
-
         return createAuthentication(currentAuthentication, certificatesChain, authorities);
     }
 
@@ -140,10 +138,11 @@ public class X509Collector implements AuthCollector {
         return certificatesChain;
     }
 
-    protected Authentication createAuthentication(Authentication currentAuthentication, X509Certificate[] certificatesChain, Set<GrantedAuthority> authorities) {
-        X509Authentication x509Authentication = new X509Authentication(currentAuthentication.getName(), authorities, certificatesChain);
-        x509Authentication.setAuthenticated(currentAuthentication.isAuthenticated());
-        return x509Authentication;
+    protected AuthenticationWithEditableAuthorities createAuthentication(
+            AuthenticationWithEditableAuthorities currentAuthentication,
+            X509Certificate[] certificatesChain,
+            Set<GrantedAuthority> authorities) {
+        return currentAuthentication.addAuthorities(authorities);
     }
 
     public interface UsernameCollector {
