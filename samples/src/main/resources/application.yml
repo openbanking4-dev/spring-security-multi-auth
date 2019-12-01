@@ -13,3 +13,8 @@ server:
 trust-store:
     path: classpath:keystores/truststore.jks
     password: changeit
+
+logging:
+    level:
+        dev:
+            openbanking4: TRACE
