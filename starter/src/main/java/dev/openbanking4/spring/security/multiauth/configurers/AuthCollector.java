@@ -31,4 +31,8 @@ public interface  AuthCollector {
     Authentication collectAuthentication(HttpServletRequest request);
 
     Authentication collectAuthorisation(HttpServletRequest req, Authentication currentAuthentication);
+
+    boolean isSetupForAuthentication();
+
+    boolean isSetupForAuthorisation();
 }

@@ -69,4 +69,13 @@ public class StaticUserCollector implements AuthCollector {
         String getUserName();
     }
 
+    @Override
+    public boolean isSetupForAuthentication() {
+        return usernameCollector != null;
+    }
+
+    @Override
+    public boolean isSetupForAuthorisation() {
+        return true;
+    }
 }

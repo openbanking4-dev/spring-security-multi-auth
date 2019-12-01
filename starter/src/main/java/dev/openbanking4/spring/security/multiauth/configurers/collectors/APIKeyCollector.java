@@ -121,6 +121,16 @@ public class APIKeyCollector<U> implements AuthCollector {
         return currentAuthentication;
     }
 
+    @Override
+    public boolean isSetupForAuthentication() {
+        return usernameCollector != null;
+    }
+
+    @Override
+    public boolean isSetupForAuthorisation() {
+        return authoritiesCollector != null;
+    }
+
     public interface APIKeyValidator<U> {
         U validate(String apiKey) throws ParseException, JOSEException;
     }
