@@ -83,6 +83,15 @@ Add the following dependency:
 </dependency>
 ```
 
+```xml
+<repositories>
+  <repository>
+    <id>jcenter</id>
+    <url>https://jcenter.bintray.com/</url>
+  </repository>
+</repositories>
+```
+
 ## examples
 
 Here is different example of how you can use the `MultiAuthenticationCollectorConfigurer`:
