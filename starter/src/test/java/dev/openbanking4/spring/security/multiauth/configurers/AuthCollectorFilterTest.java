@@ -128,7 +128,7 @@ public class AuthCollectorFilterTest {
 
     private StatelessAccessTokenCollector statelessAccessTokenCollector = StatelessAccessTokenCollector.builder()
             .collectorName("stateless-access-token-for-test")
-            .tokenValidator(token -> JWTParser.parse(token))
+            .tokenValidator((token, currentAuthentication) -> JWTParser.parse(token))
             .build();
 
 
@@ -227,7 +227,7 @@ public class AuthCollectorFilterTest {
         when(mockedRequest.getCookies()).thenReturn(new Cookie[]{new Cookie("sso",
                 "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0b3RvIiwiZ3JvdXAiOlsiYWRtaW4iLCJjbHViRmFsYWZlbEtpbmciXX0.3JsO3h2HEZSJy4sX45RfKfwzPIWvdgt1LbHeEjExWZY")});
         when(mockedRequest.getHeader("Authorization")).thenReturn(
-                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzY29wZSI6WyJhY2NvdW50cyIsInBheW1lbnRzIl19.NpzyDWjuoC9oAE50fb3W2Mgs1ORWuWYCMv2xg677fGc");
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzY29wZSI6WyJhY2NvdW50cyIsInBheW1lbnRzIl0sImNuZiI6eyJ4NXQjUzI1NiI6IjUzNjlhYmUzYjEyMDI1Y2RkZDk4NDUwZTViZWYyNTUwYzAzNmNhNzkifX0.dfrByVbVWSKPi0_OQQowaV2M9k_miFhNWdAL_VrQpXs");
 
 
         authCollectorFilter.doFilterInternal(mockedRequest, Mockito.mock(HttpServletResponse.class), Mockito.mock(FilterChain.class));
@@ -272,7 +272,7 @@ public class AuthCollectorFilterTest {
 
         when(mockedRequest.getHeader("x-cert")).thenReturn(testCertificate);
         when(mockedRequest.getHeader("Authorization")).thenReturn(
-                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzY29wZSI6WyJhY2NvdW50cyIsInBheW1lbnRzIl19.NpzyDWjuoC9oAE50fb3W2Mgs1ORWuWYCMv2xg677fGc");
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzY29wZSI6WyJhY2NvdW50cyIsInBheW1lbnRzIl0sImNuZiI6eyJ4NXQjUzI1NiI6IjUzNjlhYmUzYjEyMDI1Y2RkZDk4NDUwZTViZWYyNTUwYzAzNmNhNzkifX0.dfrByVbVWSKPi0_OQQowaV2M9k_miFhNWdAL_VrQpXs");
 
 
         authCollectorFilter.doFilterInternal(mockedRequest, Mockito.mock(HttpServletResponse.class), Mockito.mock(FilterChain.class));
@@ -316,7 +316,7 @@ public class AuthCollectorFilterTest {
 
         when(mockedRequest.getHeader("x-cert")).thenReturn(testCertificate);
         when(mockedRequest.getHeader("Authorization")).thenReturn(
-                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzY29wZSI6WyJhY2NvdW50cyIsInBheW1lbnRzIl19.NpzyDWjuoC9oAE50fb3W2Mgs1ORWuWYCMv2xg677fGc");
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzY29wZSI6WyJhY2NvdW50cyIsInBheW1lbnRzIl0sImNuZiI6eyJ4NXQjUzI1NiI6IjUzNjlhYmUzYjEyMDI1Y2RkZDk4NDUwZTViZWYyNTUwYzAzNmNhNzkifX0.dfrByVbVWSKPi0_OQQowaV2M9k_miFhNWdAL_VrQpXs");
         when(mockedRequest.getCookies()).thenReturn(new Cookie[]{new Cookie("sso",
                 "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0b3RvIiwiZ3JvdXAiOlsiYWRtaW4iLCJjbHViRmFsYWZlbEtpbmciXX0.3JsO3h2HEZSJy4sX45RfKfwzPIWvdgt1LbHeEjExWZY")});
 
@@ -364,7 +364,7 @@ public class AuthCollectorFilterTest {
 
         when(mockedRequest.getHeader("x-cert")).thenReturn(testCertificate);
         when(mockedRequest.getHeader("Authorization")).thenReturn(
-                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzY29wZSI6WyJhY2NvdW50cyIsInBheW1lbnRzIl19.NpzyDWjuoC9oAE50fb3W2Mgs1ORWuWYCMv2xg677fGc");
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzY29wZSI6WyJhY2NvdW50cyIsInBheW1lbnRzIl0sImNuZiI6eyJ4NXQjUzI1NiI6IjUzNjlhYmUzYjEyMDI1Y2RkZDk4NDUwZTViZWYyNTUwYzAzNmNhNzkifX0.dfrByVbVWSKPi0_OQQowaV2M9k_miFhNWdAL_VrQpXs");
         when(mockedRequest.getCookies()).thenReturn(new Cookie[]{new Cookie("sso",
                 "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0b3RvIiwiZ3JvdXAiOlsiYWRtaW4iLCJjbHViRmFsYWZlbEtpbmciXX0.3JsO3h2HEZSJy4sX45RfKfwzPIWvdgt1LbHeEjExWZY")});
 
@@ -411,7 +411,7 @@ public class AuthCollectorFilterTest {
 
         when(mockedRequest.getHeader("x-cert")).thenReturn(testCertificate);
         when(mockedRequest.getHeader("Authorization")).thenReturn(
-                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzY29wZSI6WyJhY2NvdW50cyIsInBheW1lbnRzIl19.NpzyDWjuoC9oAE50fb3W2Mgs1ORWuWYCMv2xg677fGc");
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzY29wZSI6WyJhY2NvdW50cyIsInBheW1lbnRzIl0sImNuZiI6eyJ4NXQjUzI1NiI6IjUzNjlhYmUzYjEyMDI1Y2RkZDk4NDUwZTViZWYyNTUwYzAzNmNhNzkifX0.dfrByVbVWSKPi0_OQQowaV2M9k_miFhNWdAL_VrQpXs");
 
         authCollectorFilter.doFilterInternal(mockedRequest, Mockito.mock(HttpServletResponse.class), Mockito.mock(FilterChain.class));
 

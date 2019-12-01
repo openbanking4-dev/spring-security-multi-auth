@@ -22,7 +22,7 @@ package dev.openbanking4.spring.security.multiauth.configurers.collectors;
 
 import com.nimbusds.jose.JOSEException;
 import dev.openbanking4.spring.security.multiauth.configurers.AuthCollector;
-import dev.openbanking4.spring.security.multiauth.model.authentication.PasswordLessUserNameAuthentication;
+import dev.openbanking4.spring.security.multiauth.model.authentication.AuthenticationWithEditableAuthorities;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -54,28 +54,26 @@ public abstract class AccessTokenCollector<T> implements AuthCollector {
         return collectorName;
     }
     @Override
-    public Authentication collectAuthentication(HttpServletRequest request) {
+    public AuthenticationWithEditableAuthorities collectAuthentication(HttpServletRequest request) {
         return null;
     }
 
     @Override
-    public Authentication collectAuthorisation(HttpServletRequest req, Authentication currentAuthentication) {
+    public AuthenticationWithEditableAuthorities collectAuthorisation(HttpServletRequest req, AuthenticationWithEditableAuthorities currentAuthentication) {
         log.trace("Looking for bearer token");
         String authorization = req.getHeader("Authorization");
         if (authorization != null && authorization.startsWith("Bearer ")) {
             String tokenSerialised = authorization.replaceFirst("Bearer ", "");
             log.trace("Token received {}", tokenSerialised);
             try {
-                T t = getTokenValidator().validate(tokenSerialised);
+                T t = getTokenValidator().validate(tokenSerialised, currentAuthentication);
                 Set<GrantedAuthority> authorities = getAuthoritiesCollector().getAuthorities(t);
                 log.trace("Authorities founds: {}", authorities);
 
                 authorities.addAll(currentAuthentication.getAuthorities());
                 log.trace("Final authorities merged with previous authorities: {}", authorities);
 
-                PasswordLessUserNameAuthentication passwordLessUserNameAuthentication = new PasswordLessUserNameAuthentication(currentAuthentication.getName(), authorities);
-                passwordLessUserNameAuthentication.setAuthenticated(currentAuthentication.isAuthenticated());
-                return passwordLessUserNameAuthentication;
+                return currentAuthentication.addAuthorities(authorities);
             } catch (HttpClientErrorException e) {
                 log.trace("Access token not valid", e);
                 if (e.getStatusCode() == HttpStatus.UNAUTHORIZED || e.getStatusCode() == HttpStatus.FORBIDDEN) {
@@ -97,7 +95,7 @@ public abstract class AccessTokenCollector<T> implements AuthCollector {
 
 
     public interface TokenValidator<T> {
-        T validate(String tokenSerialised) throws ParseException, JOSEException;
+        T validate(String tokenSerialised, Authentication currentAuthentication) throws ParseException, JOSEException;
     }
 
     public interface AuthoritiesCollector<T> {

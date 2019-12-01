@@ -55,7 +55,7 @@ public class StatefulAccessTokenCollectorTest {
     public void setUp() {
         this.statefulAccessTokenCollector = StatefulAccessTokenCollector.builder()
                 .collectorName("stateful-access-token-for-test")
-                .tokenValidator(token -> token)
+                .tokenValidator((token, currentAuthentication) -> token)
                 .authoritiesCollector(token -> Stream.of(CustomGrantType.INTERNAL, new ScopeGrantType("accounts"),
                         new ScopeGrantType("payments")).collect(Collectors.toSet()))
                 .build();
@@ -97,7 +97,7 @@ public class StatefulAccessTokenCollectorTest {
         when(mockedRequest.getHeader("Authorization")).thenReturn("Bearer wrwerwOUPPS");
         StatefulAccessTokenCollector statefulAccessTokenCollectorReturn401 = StatefulAccessTokenCollector.builder()
                         .collectorName("statefull-access-token-for-test")
-                        .tokenValidator(token -> token)
+                        .tokenValidator((token, currentAuthentication) -> token)
                         .authoritiesCollector(token -> {
                             throw new HttpClientErrorException(HttpStatus.FORBIDDEN, "Wrong token");
                         })

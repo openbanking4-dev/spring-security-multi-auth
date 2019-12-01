@@ -25,8 +25,10 @@ import org.springframework.security.core.GrantedAuthority;
 
 import java.security.cert.X509Certificate;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
-public class PSD2Authentication extends X509Authentication {
+public class PSD2Authentication extends X509Authentication implements AuthenticationWithEditableAuthorities {
 
     private Psd2CertInfo psd2CertInfo;
 
@@ -37,5 +39,15 @@ public class PSD2Authentication extends X509Authentication {
 
     public Psd2CertInfo getPsd2CertInfo() {
         return psd2CertInfo;
+    }
+
+    @Override
+    public AuthenticationWithEditableAuthorities addAuthorities(Collection<GrantedAuthority> authorities) {
+        Set<GrantedAuthority> concat = new HashSet<>();
+        concat.addAll(authorities);
+        concat.addAll(principal.getAuthorities());
+        PSD2Authentication psd2Authentication = new PSD2Authentication(principal.getUsername(), concat, chain, psd2CertInfo);
+        psd2Authentication.setAuthenticated(this.isAuthenticated());
+        return psd2Authentication;
     }
 }

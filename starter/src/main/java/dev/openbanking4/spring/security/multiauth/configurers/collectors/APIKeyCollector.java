@@ -22,6 +22,7 @@ package dev.openbanking4.spring.security.multiauth.configurers.collectors;
 
 import com.nimbusds.jose.JOSEException;
 import dev.openbanking4.spring.security.multiauth.configurers.AuthCollector;
+import dev.openbanking4.spring.security.multiauth.model.authentication.AuthenticationWithEditableAuthorities;
 import dev.openbanking4.spring.security.multiauth.model.authentication.PasswordLessUserNameAuthentication;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -29,7 +30,6 @@ import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.web.client.HttpClientErrorException;
 
@@ -56,7 +56,7 @@ public class APIKeyCollector<U> implements AuthCollector {
     }
 
     @Override
-    public Authentication collectAuthentication(HttpServletRequest req) {
+    public AuthenticationWithEditableAuthorities collectAuthentication(HttpServletRequest req) {
         String apiKey = apiKeyExtractor.fromRequest(req);
         if (apiKey != null) {
             log.trace("API key found {}", apiKey);
@@ -86,7 +86,7 @@ public class APIKeyCollector<U> implements AuthCollector {
     }
 
     @Override
-    public Authentication collectAuthorisation(HttpServletRequest req, Authentication currentAuthentication) {
+    public AuthenticationWithEditableAuthorities collectAuthorisation(HttpServletRequest req, AuthenticationWithEditableAuthorities currentAuthentication) {
         log.trace("Looking for API key");
         String apiKey = apiKeyExtractor.fromRequest(req);
         if (apiKey != null) {
@@ -99,9 +99,7 @@ public class APIKeyCollector<U> implements AuthCollector {
                 authorities.addAll(currentAuthentication.getAuthorities());
                 log.trace("Final authorities merged with previous authorities: {}", authorities);
 
-                PasswordLessUserNameAuthentication passwordLessUserNameAuthentication = new PasswordLessUserNameAuthentication(currentAuthentication.getName(), authorities);
-                passwordLessUserNameAuthentication.setAuthenticated(currentAuthentication.isAuthenticated());
-                return passwordLessUserNameAuthentication;
+                return currentAuthentication.addAuthorities(authorities);
             } catch (HttpClientErrorException e) {
                 log.trace("API key not valid", e);
                 if (e.getStatusCode() == HttpStatus.UNAUTHORIZED || e.getStatusCode() == HttpStatus.FORBIDDEN) {

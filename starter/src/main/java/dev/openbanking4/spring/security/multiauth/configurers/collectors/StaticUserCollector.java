@@ -21,11 +21,11 @@
 package dev.openbanking4.spring.security.multiauth.configurers.collectors;
 
 import dev.openbanking4.spring.security.multiauth.configurers.AuthCollector;
+import dev.openbanking4.spring.security.multiauth.model.authentication.AuthenticationWithEditableAuthorities;
 import dev.openbanking4.spring.security.multiauth.model.authentication.PasswordLessUserNameAuthentication;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 
 import javax.servlet.http.HttpServletRequest;
@@ -48,21 +48,19 @@ public class StaticUserCollector implements AuthCollector {
     }
 
     @Override
-    public Authentication collectAuthentication(HttpServletRequest request) {
+    public AuthenticationWithEditableAuthorities collectAuthentication(HttpServletRequest request) {
         return new PasswordLessUserNameAuthentication(usernameCollector.getUserName(), Collections.EMPTY_SET);
     }
 
     @Override
-    public Authentication collectAuthorisation(HttpServletRequest request, Authentication currentAuthentication) {
+    public AuthenticationWithEditableAuthorities collectAuthorisation(HttpServletRequest request, AuthenticationWithEditableAuthorities currentAuthentication) {
 
         Set<GrantedAuthority> authorities = new HashSet<>(grantedAuthorities);
         log.trace("Authorities setup for the static user: {}", authorities);
         authorities.addAll(currentAuthentication.getAuthorities());
         log.trace("Final authorities merged with previous authorities: {}", authorities);
 
-        PasswordLessUserNameAuthentication passwordLessUserNameAuthentication = new PasswordLessUserNameAuthentication(currentAuthentication.getName(), authorities);
-        passwordLessUserNameAuthentication.setAuthenticated(currentAuthentication.isAuthenticated());
-        return passwordLessUserNameAuthentication;
+        return currentAuthentication.addAuthorities(authorities);
     }
 
     public interface UsernameCollector {

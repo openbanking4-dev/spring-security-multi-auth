@@ -18,21 +18,14 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package dev.openbanking4.spring.security.multiauth.configurers;
+package dev.openbanking4.spring.security.multiauth.model.authentication;
 
-import dev.openbanking4.spring.security.multiauth.model.authentication.AuthenticationWithEditableAuthorities;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 
-import javax.servlet.http.HttpServletRequest;
+import java.util.Collection;
 
-public interface AuthCollector {
+public interface AuthenticationWithEditableAuthorities extends Authentication {
 
-    String collectorName();
-
-    AuthenticationWithEditableAuthorities collectAuthentication(HttpServletRequest request);
-
-    AuthenticationWithEditableAuthorities collectAuthorisation(HttpServletRequest req, AuthenticationWithEditableAuthorities currentAuthentication);
-
-    boolean isSetupForAuthentication();
-
-    boolean isSetupForAuthorisation();
+    AuthenticationWithEditableAuthorities addAuthorities(Collection<GrantedAuthority> authorities);
 }
