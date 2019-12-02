@@ -25,20 +25,20 @@
     <groupId>dev.openbanking4.spring.security</groupId>
     <artifactId>spring-security-multi-auth-samples</artifactId>
     <packaging>jar</packaging>
-    <version>2.2.0.0.0.46</version>
+    <version>2.2.0.0.0.47-SNAPSHOT</version>
     <name>Samples</name>
 
     <parent>
         <groupId>dev.openbanking4.spring.security</groupId>
         <artifactId>spring-security-multi-auth</artifactId>
-        <version>2.2.0.0.0.46</version>
+        <version>2.2.0.0.0.47-SNAPSHOT</version>
     </parent>
 
     <dependencies>
         <dependency>
             <groupId>dev.openbanking4.spring.security</groupId>
             <artifactId>spring-security-multi-auth-starter</artifactId>
-            <version>2.2.0.0.0.46</version>
+            <version>2.2.0.0.0.47-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
