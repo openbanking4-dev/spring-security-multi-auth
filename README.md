@@ -7,13 +7,13 @@
 
 Spring security multi-auth 
 ========================
-
+ 
 Extend Spring security to provide a multi-auth configurer. Create custom authentication method, add more than one 
 authentication methods to an endpoint. You can also authenticate using one method and authorize using another.
 A typical way would be to use certificate authentication (MATLS) but collect authorisation using an access token.
  
 
-# Motivation of this project
+# Motivation of this project.
 
 ## Easy way to create custom authentication configurers
 
