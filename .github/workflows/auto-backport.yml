@@ -1,0 +1,28 @@
+name: auto-backport
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Backport
+      uses: qcastel/github-actions-backport@master
+      with:
+        backport-branches-regex: "releases-spring-*"
+
+        reviewers-teams: ['developer']
+
+        gpg-enabled: "true"
+        gpg-key-id: ${{ secrets.GITHUB_GPG_KEY_ID }}
+        gpg-key: ${{ secrets.GITHUB_GPG_KEY }}
+
+        git-release-bot-name: "release-bot"
+        git-release-bot-email: "release-bot@example.com"
+
+        access-token: ${{ secrets.BOT_GITHUB_REPO_ACCESS_TOKEN }}
