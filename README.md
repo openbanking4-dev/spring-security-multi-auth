@@ -13,7 +13,7 @@ authentication methods to an endpoint. You can also authenticate using one metho
 A typical way would be to use certificate authentication (MATLS) but collect authorisation using an access token.
  
 
-# Motivation of this project
+# Motivation of this project.
 
 ## Easy way to create custom authentication configurers
 
