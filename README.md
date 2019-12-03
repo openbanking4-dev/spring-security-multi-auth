@@ -13,9 +13,9 @@ authentication methods to an endpoint. You can also authenticate using one metho
 A typical way would be to use certificate authentication (MATLS) but collect authorisation using an access token.
  
 
-# Motivation of this project
+# Motivation of this project.
 
-## Easy way to create custom authentication configurers
+## Easy way to create custom authentication configurers.
 
 Spring security offers authentication configurers out of the box, like X509, rememberMe, etc.
 Defining a new authentication collector in Spring security is possible but requires a configurer and a filter.
