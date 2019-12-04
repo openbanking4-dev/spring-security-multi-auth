@@ -98,3 +98,4 @@ Add the following dependency:
 ## examples
 
 We created a dedicated repo [https://github.com/openbanking4-dev/spring-security-multi-auth-examples](https://github.com/openbanking4-dev/spring-security-multi-auth-examples) to provide examples of how you can use the library.
+
