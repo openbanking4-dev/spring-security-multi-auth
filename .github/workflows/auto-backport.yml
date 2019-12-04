@@ -14,9 +14,9 @@ jobs:
     - name: Backport
       uses: qcastel/github-actions-backport@master
       with:
-        backport-branches-regex: "releases-spring-*"
+        backport-branches-regex: "origin/release-spring-"
 
-        reviewers-teams: ['developer']
+        reviewers-teams: "[\"developer\"]"
 
         gpg-enabled: "true"
         gpg-key-id: ${{ secrets.GITHUB_GPG_KEY_ID }}
