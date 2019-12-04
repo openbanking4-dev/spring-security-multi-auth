@@ -13,6 +13,7 @@ jobs:
     - uses: actions/checkout@v1
     - name: Backport
       uses: qcastel/github-actions-backport@master
+      if: github.actor != "bot-openbanking4-dev"
       with:
         backport-branches-regex: "origin/release-spring-"
 
@@ -22,7 +23,7 @@ jobs:
         gpg-key-id: ${{ secrets.GITHUB_GPG_KEY_ID }}
         gpg-key: ${{ secrets.GITHUB_GPG_KEY }}
 
-        git-release-bot-name: "release-bot"
-        git-release-bot-email: "release-bot@example.com"
+        git-release-bot-name: "bot-openbanking4-dev"
+        git-release-bot-email: "bot@openbanking4.dev"
 
         access-token: ${{ secrets.BOT_GITHUB_REPO_ACCESS_TOKEN }}
