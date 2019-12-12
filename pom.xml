@@ -47,7 +47,7 @@
 	<properties>
 		<java.version>11</java.version>
 		<version.javadoc.plugin>3.0.1</version.javadoc.plugin>
-		<apache.httpmime.version>4.5.9</apache.httpmime.version>
+		<apache.httpmime.version>4.5.10</apache.httpmime.version>
 		<apache.httpasyncclient.version>4.1.4</apache.httpasyncclient.version>
 		<lombok.version>1.18.10</lombok.version>
 		<nimbusds.version>7.9</nimbusds.version>
