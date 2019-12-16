@@ -67,7 +67,7 @@ public abstract class CustomCookieCollector<T> implements AuthCollector {
                 log.trace("Cookie valid");
                 String userName = usernameCollector.getUserName(t);
                 log.trace("Username {} found", userName);
-                return new PasswordLessUserNameAuthentication(userName, Collections.EMPTY_SET);
+                return createAuthenticationUser(userName, t);
             } catch (HttpClientErrorException e) {
                 log.trace("Cookie not valid");
                 if (e.getStatusCode() == HttpStatus.UNAUTHORIZED || e.getStatusCode() == HttpStatus.FORBIDDEN) {
@@ -117,6 +117,10 @@ public abstract class CustomCookieCollector<T> implements AuthCollector {
         }
         log.trace("Final authorities merged with previous authorities: {}", authorities);
         return currentAuthentication.addAuthorities(authorities);
+    }
+
+    protected AuthenticationWithEditableAuthorities createAuthenticationUser(String username, T token) {
+        return new PasswordLessUserNameAuthentication(username, Collections.EMPTY_SET);
     }
 
     private Cookie getCookie(HttpServletRequest request, String name) {

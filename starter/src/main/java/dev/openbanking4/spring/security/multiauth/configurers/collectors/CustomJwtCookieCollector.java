@@ -21,10 +21,15 @@
 package dev.openbanking4.spring.security.multiauth.configurers.collectors;
 
 import com.nimbusds.jwt.JWT;
+import dev.openbanking4.spring.security.multiauth.model.authentication.AuthenticationWithEditableAuthorities;
+import dev.openbanking4.spring.security.multiauth.model.authentication.JwtAuthentication;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
+
+import java.text.ParseException;
+import java.util.Collections;
 
 @Slf4j
 @ToString
@@ -40,5 +45,15 @@ public class CustomJwtCookieCollector extends CustomCookieCollector<JWT> {
                 authoritiesCollector,
                 cookieName
         );
+    }
+
+    @Override
+    protected AuthenticationWithEditableAuthorities createAuthenticationUser(String username, JWT token) {
+        try {
+            return new JwtAuthentication(username, Collections.EMPTY_SET, token.getJWTClaimsSet());
+        } catch (ParseException e) {
+            log.warn("Couldn't read the claims of the jwt token. username: {} and token: {}", username, token.serialize());
+            return new JwtAuthentication(username, Collections.EMPTY_SET, null);
+        }
     }
 }

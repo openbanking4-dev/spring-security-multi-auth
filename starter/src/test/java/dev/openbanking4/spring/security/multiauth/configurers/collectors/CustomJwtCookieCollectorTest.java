@@ -21,7 +21,9 @@
 package dev.openbanking4.spring.security.multiauth.configurers.collectors;
 
 
+import com.nimbusds.jwt.JWT;
 import com.nimbusds.jwt.JWTParser;
+import dev.openbanking4.spring.security.multiauth.model.authentication.JwtAuthentication;
 import dev.openbanking4.spring.security.multiauth.model.authentication.PasswordLessUserNameAuthentication;
 import dev.openbanking4.spring.security.multiauth.model.granttypes.ScopeGrantType;
 import org.junit.Before;
@@ -41,6 +43,7 @@ import org.springframework.web.context.request.ServletWebRequest;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
+import java.text.ParseException;
 import java.util.Collections;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -189,4 +192,33 @@ public class CustomJwtCookieCollectorTest {
 
         //Then BadCredentialsException
     }
+
+    @Test
+    public void testAccessingClaims() throws ParseException {
+        //Given
+        HttpServletRequest mockedRequest = Mockito.mock(HttpServletRequest.class);
+        RequestContextHolder.setRequestAttributes(new ServletWebRequest(mockedRequest));
+
+        String tokenSerialised = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0b3RvIiwiZ3JvdXAiOlsiYWRtaW4iLCJjbHViRmFsYWZlbEtpbmciXX0.3JsO3h2HEZSJy4sX45RfKfwzPIWvdgt1LbHeEjExWZY";
+        when(mockedRequest.getCookies()).thenReturn(new Cookie[]{new Cookie("sso", tokenSerialised)});
+
+        //When
+        JwtAuthentication authentication = (JwtAuthentication) customCookieCollector.collectAuthentication(mockedRequest);
+
+        //Then
+        assertThat(authentication).isNotNull();
+        UserDetails userDetailsExpected = User.builder()
+                .username("toto")
+                .password("")
+                .authorities(Collections.emptySet())
+                .build();
+        UserDetails userDetailsResult = (UserDetails) authentication.getPrincipal();
+        assertThat(userDetailsResult.getUsername()).isEqualTo(userDetailsExpected.getUsername());
+
+        assertThat(authentication.getJwtClaimsSet()).isNotNull();
+
+        JWT expectedJwt = JWTParser.parse(tokenSerialised);
+        assertThat(authentication.getJwtClaimsSet()).isEqualTo(expectedJwt.getJWTClaimsSet());
+    }
+
 }
