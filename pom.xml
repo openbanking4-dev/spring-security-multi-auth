@@ -51,7 +51,7 @@
 		<apache.httpasyncclient.version>4.1.4</apache.httpasyncclient.version>
 		<lombok.version>1.18.10</lombok.version>
 		<nimbusds.version>7.9</nimbusds.version>
-		<eidas.sdk.version>1.13</eidas.sdk.version>
+		<eidas.sdk.version>1.14</eidas.sdk.version>
 		<mockito.core.version>3.2.0</mockito.core.version>
 		<junit.version>4.12</junit.version>
 		<assertj.core.version>3.14.0</assertj.core.version>
