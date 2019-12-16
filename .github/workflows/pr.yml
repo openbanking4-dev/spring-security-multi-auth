@@ -19,3 +19,14 @@ jobs:
     - uses: codecov/codecov-action@v1
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
+  auto-merge:
+    name: Auto merge
+    runs-on: ubuntu-latest
+    needs:
+      - build
+    steps:
+      - name: Auto merge
+        uses: qcastel/dependabot-auto-merge-action@allowOtherBots
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BOT_NAME: "bot-openbanking4-dev"
