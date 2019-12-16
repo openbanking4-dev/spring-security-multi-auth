@@ -51,7 +51,7 @@
 		<apache.httpasyncclient.version>4.1.4</apache.httpasyncclient.version>
 		<lombok.version>1.18.10</lombok.version>
 		<nimbusds.version>8.3</nimbusds.version>
-		<eidas.sdk.version>1.13</eidas.sdk.version>
+		<eidas.sdk.version>1.18</eidas.sdk.version>
 		<mockito.core.version>3.2.0</mockito.core.version>
 		<junit.version>4.12</junit.version>
 		<assertj.core.version>3.14.0</assertj.core.version>
@@ -80,8 +80,8 @@
 				<version>${nimbusds.version}</version>
 			</dependency>
 			<dependency>
-				<groupId>com.forgerock</groupId>
-				<artifactId>forgerock-eidas-psd2-cert-sdk</artifactId>
+				<groupId>com.forgerock.openbanking</groupId>
+				<artifactId>eidas-psd2-cert</artifactId>
 				<version>${eidas.sdk.version}</version>
 			</dependency>
 			<dependency>
@@ -121,7 +121,20 @@
 	</distributionManagement>
 
 	<repositories>
+		<repository>
+			<id>jcenter</id>
+			<url>https://jcenter.bintray.com/</url>
+		</repository>
+		<repository>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+			<id>bintray-openbanking-toolkit-OpenBankingToolKit</id>
+			<name>bintray</name>
+			<url>https://dl.bintray.com/openbanking-toolkit/OpenBankingToolKit</url>
+		</repository>
 	</repositories>
+
 
 	<licenses>
 		<license>
