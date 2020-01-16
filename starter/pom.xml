@@ -55,8 +55,8 @@
             <artifactId>nimbus-jose-jwt</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.forgerock</groupId>
-            <artifactId>forgerock-eidas-psd2-cert-sdk</artifactId>
+            <groupId>com.forgerock.openbanking</groupId>
+            <artifactId>eidas-psd2-cert</artifactId>
         </dependency>
         <dependency>
             <groupId>javax.servlet</groupId>
