@@ -28,6 +28,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
@@ -61,7 +63,7 @@ public abstract class AccessTokenCollector<T> implements AuthCollector {
     @Override
     public AuthenticationWithEditableAuthorities collectAuthorisation(HttpServletRequest req, AuthenticationWithEditableAuthorities currentAuthentication) {
         log.trace("Looking for bearer token");
-        String authorization = req.getHeader("Authorization");
+        String authorization = req.getHeader(HttpHeaders.AUTHORIZATION);
         if (authorization != null && authorization.startsWith("Bearer ")) {
             String tokenSerialised = authorization.replaceFirst("Bearer ", "");
             log.trace("Token received {}", tokenSerialised);
