@@ -54,7 +54,7 @@
 		<eidas.sdk.version>1.19</eidas.sdk.version>
 		<mockito.core.version>3.2.4</mockito.core.version>
 		<junit.version>4.13</junit.version>
-		<assertj.core.version>3.14.0</assertj.core.version>
+		<assertj.core.version>3.15.0</assertj.core.version>
 	</properties>
 
 	<dependencyManagement>
