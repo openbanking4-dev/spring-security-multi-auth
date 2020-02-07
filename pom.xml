@@ -49,7 +49,7 @@
 		<version.javadoc.plugin>3.0.1</version.javadoc.plugin>
 		<apache.httpmime.version>4.5.11</apache.httpmime.version>
 		<apache.httpasyncclient.version>4.1.4</apache.httpasyncclient.version>
-		<lombok.version>1.18.10</lombok.version>
+		<lombok.version>1.18.12</lombok.version>
 		<nimbusds.version>8.5.1</nimbusds.version>
 		<eidas.sdk.version>1.20</eidas.sdk.version>
 		<mockito.core.version>3.2.4</mockito.core.version>
