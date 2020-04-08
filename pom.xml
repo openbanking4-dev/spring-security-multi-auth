@@ -113,11 +113,16 @@
   	</scm>
 
 	<distributionManagement>
-		<repository>
-			<id>bintray-quentincastel-openbanking4.dev</id>
-			<name>OpenBanking4.dev Releases Repository</name>
-			<url>https://api.bintray.com/maven/openbanking4-dev/openbanking4-dev/spring-security-multi-auth/;publish=1</url>
-		</repository>
+	        <repository>
+	            <id>maven.forgerock.org-community</id>
+	            <name>maven.forgerock.org-releases</name>
+	            <url>https://maven.forgerock.org:443/repo/community</url>
+	        </repository>
+	        <snapshotRepository>
+	            <id>maven.forgerock.org-community-snapshots</id>
+	            <name>maven.forgerock.org-snapshots</name>
+	            <url>https://maven.forgerock.org:443/repo/community</url>
+	        </snapshotRepository>
 	</distributionManagement>
 
 	<repositories>
