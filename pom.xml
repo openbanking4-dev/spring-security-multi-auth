@@ -27,13 +27,13 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>2.2.2.RELEASE</version>
+		<version>2.2.6.RELEASE</version>
 		<relativePath /> <!-- lookup parent from repository -->
 	</parent>
 
 	<groupId>dev.openbanking4.spring.security</groupId>
 	<artifactId>spring-security-multi-auth</artifactId>
-	<version>2.2.1.0.0.55-SNAPSHOT</version>
+	<version>2.2.4.0.0.2-SNAPSHOT</version>
 	<name>spring-security-multi-auth</name>
 	<description>Spring security multi-authentication</description>
 	<packaging>pom</packaging>
@@ -47,14 +47,14 @@
 	<properties>
 		<java.version>11</java.version>
 		<version.javadoc.plugin>3.0.1</version.javadoc.plugin>
-		<apache.httpmime.version>4.5.10</apache.httpmime.version>
+		<apache.httpmime.version>4.5.12</apache.httpmime.version>
 		<apache.httpasyncclient.version>4.1.4</apache.httpasyncclient.version>
-		<lombok.version>1.18.10</lombok.version>
-		<nimbusds.version>8.4</nimbusds.version>
-		<eidas.sdk.version>1.19</eidas.sdk.version>
-		<mockito.core.version>3.2.4</mockito.core.version>
+		<lombok.version>1.18.12</lombok.version>
+		<nimbusds.version>8.14</nimbusds.version>
+		<eidas.sdk.version>1.24</eidas.sdk.version>
+		<mockito.core.version>3.3.3</mockito.core.version>
 		<junit.version>4.13</junit.version>
-		<assertj.core.version>3.14.0</assertj.core.version>
+		<assertj.core.version>3.15.0</assertj.core.version>
 	</properties>
 
 	<dependencyManagement>
