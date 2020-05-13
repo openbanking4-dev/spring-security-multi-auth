@@ -50,7 +50,7 @@
 		<apache.httpmime.version>4.5.12</apache.httpmime.version>
 		<apache.httpasyncclient.version>4.1.4</apache.httpasyncclient.version>
 		<lombok.version>1.18.12</lombok.version>
-		<nimbusds.version>8.16</nimbusds.version>
+		<nimbusds.version>8.17</nimbusds.version>
 		<eidas.sdk.version>1.24</eidas.sdk.version>
 		<mockito.core.version>3.3.3</mockito.core.version>
 		<junit.version>4.13</junit.version>
