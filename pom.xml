@@ -52,7 +52,7 @@
 		<lombok.version>1.18.12</lombok.version>
 		<nimbusds.version>8.20</nimbusds.version>
 		<eidas.sdk.version>1.24</eidas.sdk.version>
-		<mockito.core.version>3.5.2</mockito.core.version>
+		<mockito.core.version>3.5.5</mockito.core.version>
 		<junit.version>4.13</junit.version>
 		<assertj.core.version>3.16.1</assertj.core.version>
 	</properties>
