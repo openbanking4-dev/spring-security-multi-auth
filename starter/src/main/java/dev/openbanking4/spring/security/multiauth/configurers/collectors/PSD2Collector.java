@@ -42,8 +42,15 @@ import java.util.Set;
 public class PSD2Collector extends X509Collector {
 
     @Builder(builderMethodName = "psd2Builder")
-    public PSD2Collector(String collectorName, UsernameCollector usernameCollector, AuthoritiesCollector authoritiesCollector, CertificateHeaderFormat collectFromHeader, String headerName) {
-        super(collectorName, usernameCollector, certificatesChain -> {
+    public PSD2Collector(String collectorName, Psd2UsernameCollector psd2UsernameCollector,
+                         Psd2AuthoritiesCollector psd2AuthoritiesCollector, CertificateHeaderFormat collectFromHeader,
+                         String headerName) {
+        super(collectorName, getUsernameCollector(psd2UsernameCollector), getAuthoritiesCollector(psd2AuthoritiesCollector),
+                collectFromHeader, headerName);
+    }
+
+    private static AuthoritiesCollector getAuthoritiesCollector(Psd2AuthoritiesCollector psd2AuthoritiesCollector) {
+        return certificatesChain -> {
             Set<GrantedAuthority> authorities = new HashSet<>();
             try {
                 Psd2CertInfo psd2CertInfo = new Psd2CertInfo(certificatesChain);
@@ -57,10 +64,12 @@ public class PSD2Collector extends X509Collector {
                     if (psd2QcStatementOpt.isPresent()) {
                         Psd2QcStatement psd2QcStatement = psd2QcStatementOpt.get();
                         log.trace("Founds PSD2 QC Statement {}", psd2QcStatement);
-                        authorities.addAll(authoritiesCollector.getAuthorities(certificatesChain, psd2CertInfo, psd2QcStatement.getRoles()));
+                        RolesOfPsp roles = psd2QcStatement.getRoles();
+                        authorities.addAll(psd2AuthoritiesCollector.getAuthorities(certificatesChain, psd2CertInfo,
+                                roles));
                     } else {
                         log.trace("No PSD2 QC Statement found");
-                        authorities.addAll(authoritiesCollector.getAuthorities(certificatesChain, psd2CertInfo, null));
+                        authorities.addAll(psd2AuthoritiesCollector.getAuthorities(certificatesChain, psd2CertInfo, null));
                     }
                 } else {
                     if (log.isTraceEnabled()) {
@@ -69,34 +78,58 @@ public class PSD2Collector extends X509Collector {
                         } else if (psd2CertInfo.getEidasCertType().isEmpty()) {
                             log.trace("Is a PSD2 certs but no EIDAS cert type");
                         } else if (psd2CertInfo.getEidasCertType().isEmpty()) {
-                            log.trace("Is a PSD2 certs with EIDAS cert type {} but it's not a QWAC", psd2CertInfo.getEidasCertType().get());
+                            log.trace("Is a PSD2 certs with EIDAS cert type {} but it's not a QWAC",
+                                    psd2CertInfo.getEidasCertType().get());
                         }
                     }
-                    authorities.addAll(authoritiesCollector.getAuthorities(certificatesChain, null, null));
+                    authorities.addAll(psd2AuthoritiesCollector.getAuthorities(certificatesChain, null, null));
                 }
             } catch (InvalidPsd2EidasCertificate | InvalidEidasCertType invalidPsd2EidasCertificate) {
-                log.warn("Certificate founds couldn't be parsed as a PSD2 certificate. Will ignore the certificate", invalidPsd2EidasCertificate);
+                log.warn("Certificate founds couldn't be parsed as a PSD2 certificate. Will ignore the certificate",
+                        invalidPsd2EidasCertificate);
             }
 
             return authorities;
-        }, collectFromHeader, headerName);
+        };
+    }
+
+    private static X509Collector.UsernameCollector getUsernameCollector(Psd2UsernameCollector usernameCollector) {
+        return certificatesChain -> {
+            try {
+                Psd2CertInfo psd2CertInfo = new Psd2CertInfo(certificatesChain);
+                return usernameCollector.getUserName(certificatesChain, psd2CertInfo);
+            } catch (InvalidPsd2EidasCertificate | InvalidEidasCertType invalidPsd2EidasCertificate) {
+                log.warn("Certificate found couldn't be parsed as a PSD2 certificate. Certificate will be ignored",
+                        invalidPsd2EidasCertificate);
+                return null;
+            }
+        };
     }
 
 
     @Override
-    protected AuthenticationWithEditableAuthorities createAuthentication(AuthenticationWithEditableAuthorities currentAuthentication, X509Certificate[] certificatesChain, Set<GrantedAuthority> authorities) {
+    protected AuthenticationWithEditableAuthorities createAuthentication(
+            AuthenticationWithEditableAuthorities currentAuthentication, X509Certificate[] certificatesChain,
+            Set<GrantedAuthority> authorities) {
         try {
             Psd2CertInfo psd2CertInfo = new Psd2CertInfo(certificatesChain);
-            PSD2Authentication psd2Authentication = new PSD2Authentication(currentAuthentication.getName(), authorities, certificatesChain, psd2CertInfo);
+            PSD2Authentication psd2Authentication = new PSD2Authentication(currentAuthentication.getName(), authorities,
+                    certificatesChain, psd2CertInfo);
             psd2Authentication.setAuthenticated(currentAuthentication.isAuthenticated());
             return psd2Authentication;
         } catch (InvalidPsd2EidasCertificate invalidPsd2EidasCertificate) {
-            log.warn("Certificate founds couldn't be parsed as a PSD2 certificate. Will ignore the certificate", invalidPsd2EidasCertificate);
+            log.warn("Certificate founds couldn't be parsed as a PSD2 certificate. Will ignore the certificate",
+                    invalidPsd2EidasCertificate);
         }
         return super.createAuthentication(currentAuthentication, certificatesChain, authorities);
     }
 
-    public interface AuthoritiesCollector {
-        Set<GrantedAuthority> getAuthorities(X509Certificate[] certificatesChain, Psd2CertInfo psd2CertInfo, RolesOfPsp roles);
+    public interface Psd2UsernameCollector {
+        String getUserName(X509Certificate[] certificatesChain, Psd2CertInfo psd2CertInfo) throws InvalidEidasCertType;
+    }
+
+    public interface Psd2AuthoritiesCollector {
+        Set<GrantedAuthority> getAuthorities(X509Certificate[] certificatesChain, Psd2CertInfo psd2CertInfo,
+                                             RolesOfPsp roles);
     }
 }
