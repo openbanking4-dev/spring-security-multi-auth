@@ -68,20 +68,19 @@ public class X509Collector implements AuthCollector {
     public AuthenticationWithEditableAuthorities collectAuthentication(HttpServletRequest request) {
 
         X509Certificate[] certificatesChain = getCertificatesFromRequest(request);
-
+        X509Authentication authentication = null;
         //Check if no client certificate received
-        if (certificatesChain == null) {
-            return null;
+        if (certificatesChain != null) {
+            String username = usernameCollector.getUserName(certificatesChain);
+            log.trace("Username '{}' extracted from the certificate", username);
+            if (username != null && !username.isEmpty()) {
+                authentication = new X509Authentication(username, Collections.EMPTY_SET, certificatesChain);
+            }
+        } else {
+            log.trace("collectAuthentication(request): No certificates found in request: {}", request.toString());
         }
 
-        String username = usernameCollector.getUserName(certificatesChain);
-        log.trace("Username '{}' extracted from the certificate", username);
-
-        if (username == null) {
-            return null;
-        }
-
-        return new X509Authentication(username, Collections.EMPTY_SET, certificatesChain);
+        return authentication;
     }
 
 

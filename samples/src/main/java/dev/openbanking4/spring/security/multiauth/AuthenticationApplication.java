@@ -20,6 +20,7 @@
  */
 package dev.openbanking4.spring.security.multiauth;
 
+import com.forgerock.cert.eidas.EidasCertType;
 import com.nimbusds.jose.JWSObject;
 import com.nimbusds.jose.JWSVerifier;
 import com.nimbusds.jose.crypto.MACVerifier;
@@ -29,6 +30,7 @@ import dev.openbanking4.spring.security.multiauth.configurers.MultiAuthenticatio
 import dev.openbanking4.spring.security.multiauth.configurers.collectors.*;
 import dev.openbanking4.spring.security.multiauth.model.CertificateHeaderFormat;
 import dev.openbanking4.spring.security.multiauth.model.authentication.X509Authentication;
+import lombok.extern.slf4j.Slf4j;
 import net.minidev.json.JSONObject;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -55,6 +57,7 @@ import java.util.stream.Stream;
 @RestController
 @SpringBootApplication
 @EnableWebSecurity
+@Slf4j
 public class AuthenticationApplication {
 
 	public static void main(String[] args) {
@@ -81,7 +84,8 @@ public class AuthenticationApplication {
 					 * Authentication & authorisation via a cookie 'SSO'
 					 * The authorities are extracted from the 'group' claim
 					 * The username is extracted from the 'sub' claim
-					 * Note: JWT cookies expected to be signed with HMAC with "Qt5y2isMydGwVuREoIomK9Ei70EoFQKH0GpcbtJ4" as a secret
+					 * Note: JWT cookies expected to be signed with HMAC with "Qt5y2isMydGwVuREoIomK9Ei70EoFQKH0GpcbtJ4"
+					 * as a secret
 					 */
 					.collector(CustomJwtCookieCollector.builder()
 						.collectorName("Cookie-SESSION")
@@ -125,6 +129,31 @@ public class AuthenticationApplication {
 						.build())
 
 					/**
+					 * Checks for PSD2 Certificates and if it's a QSEAL returns the principal name else returns null
+					 */
+					.collectorForAuthentication(PSD2Collector.psd2Builder()
+						.collectorName("PSD2Collector")
+							.psd2UsernameCollector((certificatesChain, psd2CertInfo) -> {
+								String userName = null;
+								if (psd2CertInfo.isPsd2Cert() &&
+										psd2CertInfo.getEidasCertType().get() == EidasCertType.WEB) {
+									if (certificatesChain[0] != null) {
+										userName = certificatesChain[0].getSubjectDN().getName();
+									} else {
+										throw new IllegalArgumentException("certificateChain must not contain null " +
+												"entries");
+									}
+								} else {
+									log.info("PSD2 Certificate is not a QSeal - we expect a QSEAL for authentication." +
+											" Eidas cert type is '{}'", psd2CertInfo.getEidasCertType().get());
+								}
+								return userName;
+							})
+							.collectFromHeader(CertificateHeaderFormat.PEM)
+							.headerName("x-cert")
+							.build())
+
+					/**
 					 * Authorization via an access token
 					 * The authorities are extracted from the 'scope' claim
 					 * Note: For simplification, the access token is signed with HMAC, using the secret
@@ -143,7 +172,8 @@ public class AuthenticationApplication {
 								// We need to verify the token binding
 								String certificateThumbprint = cnf.getAsString("x5t#S256");
 								if (certificateThumbprint == null) {
-									throw new BadCredentialsException("Claim 'x5t#S256' is not defined but cnf present. Access token format is invalid.");
+									throw new BadCredentialsException("Claim 'x5t#S256' is not defined but cnf " +
+											"present. Access token format is invalid.");
 								}
 								if (!(currentAuthentication instanceof X509Authentication)) {
 									throw new BadCredentialsException("Request not authenticated with a client cert");
@@ -157,7 +187,8 @@ public class AuthenticationApplication {
 								}
 								if (!certificateThumbprint.equals(clientCertThumbprint)) {
 									throw new BadCredentialsException("The thumbprint from the client certificate '"
-											+ clientCertThumbprint + "' doesn't match the one specify in the access token '" + certificateThumbprint + "'");
+											+ clientCertThumbprint + "' doesn't match the one specify in the access " +
+											"token '" + certificateThumbprint + "'");
 								}
 							}
 

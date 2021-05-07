@@ -20,8 +20,12 @@
  */
 package dev.openbanking4.spring.security.multiauth.configurers;
 
+import com.forgerock.cert.Psd2CertInfo;
+import com.forgerock.cert.eidas.EidasCertType;
+import com.forgerock.cert.exception.InvalidEidasCertType;
 import com.forgerock.cert.psd2.Psd2Role;
 import com.forgerock.cert.psd2.RoleOfPsp;
+import com.forgerock.cert.psd2.RolesOfPsp;
 import com.nimbusds.jwt.JWTParser;
 import dev.openbanking4.spring.security.multiauth.configurers.collectors.*;
 import dev.openbanking4.spring.security.multiauth.model.CertificateHeaderFormat;
@@ -33,6 +37,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
@@ -44,9 +49,11 @@ import javax.servlet.FilterChain;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.security.cert.X509Certificate;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -56,7 +63,7 @@ import static org.mockito.Mockito.when;
 @RunWith(MockitoJUnitRunner.class)
 @Slf4j
 public class AuthCollectorFilterTest {
-    private String testCertificate =  "-----BEGIN CERTIFICATE-----\n" +
+    private final String testCertificate = "-----BEGIN CERTIFICATE-----\n" +
             "MIIFoDCCBIigAwIBAgIEWcWcQDANBgkqhkiG9w0BAQsFADBTMQswCQYDVQQGEwJH\n" +
             "QjEUMBIGA1UEChMLT3BlbkJhbmtpbmcxLjAsBgNVBAMTJU9wZW5CYW5raW5nIFBy\n" +
             "ZS1Qcm9kdWN0aW9uIElzc3VpbmcgQ0EwHhcNMTkwODE5MTUzMTU2WhcNMjAwOTE5\n" +
@@ -90,13 +97,13 @@ public class AuthCollectorFilterTest {
             "NUL7Aw==\n" +
             "-----END CERTIFICATE-----\n";
 
-    private StaticUserCollector staticUserCollector = StaticUserCollector.builder()
+    private final StaticUserCollector staticUserCollector = StaticUserCollector.builder()
             .collectorName("statis-user-bob-for-test")
             .usernameCollector(() -> "bob")
             .grantedAuthorities(Stream.of(new SimpleGrantedAuthority("bobPower")).collect(Collectors.toSet()))
             .build();
 
-    private CustomJwtCookieCollector customJwtCookieCollector = CustomJwtCookieCollector.builder()
+    private final CustomJwtCookieCollector customJwtCookieCollector = CustomJwtCookieCollector.builder()
             .collectorName("Custom-cookie-jwt-for-test")
             .authoritiesCollector(token -> token.getJWTClaimsSet().getStringListClaim("group").stream()
                     .map(g -> new SimpleGrantedAuthority(g)).collect(Collectors.toSet()))
@@ -104,29 +111,53 @@ public class AuthCollectorFilterTest {
             .cookieName("sso")
             .build();
 
-    private PSD2Collector psd2Collector = PSD2Collector.psd2Builder()
+
+    private final PSD2Collector psd2Collector = PSD2Collector.psd2Builder()
             .collectorName("psd2-for-test")
-            .usernameCollector(certificatesChain -> certificatesChain[0].getSubjectDN().getName())
-            .authoritiesCollector((certificatesChain, psd2CertInfo, roles) -> {
-                if (roles == null) {
-                    return Collections.EMPTY_SET;
+            .psd2UsernameCollector(new PSD2Collector.Psd2UsernameCollector() {
+                @Override
+                public String getUserName(X509Certificate[] certificatesChain, Psd2CertInfo psd2CertInfo)
+                        throws InvalidEidasCertType {
+                    String userName = null;
+                    if (psd2CertInfo.isPsd2Cert() &&
+                            psd2CertInfo.getEidasCertType().get() == EidasCertType.WEB) {
+                        if (certificatesChain[0] != null) {
+                            userName = certificatesChain[0].getSubjectDN().getName();
+                        } else {
+                            throw new IllegalArgumentException("certificateChain must not contain null " +
+                                    "entries");
+                        }
+                    } else {
+                        log.info("PSD2 Certificate is not a QSeal - we expect a QSEAL for authentication. Eidas cert " +
+                                "type: {}", psd2CertInfo.getEidasCertType().get());
+                    }
+                    return userName;
                 }
-                return roles.getRolesOfPsp().stream().map(r -> new PSD2GrantType(r)).collect(Collectors.toSet());
+            })
+            .psd2AuthoritiesCollector(new PSD2Collector.Psd2AuthoritiesCollector() {
+                @Override
+                public Set<GrantedAuthority> getAuthorities(X509Certificate[] certificatesChain,
+                                                            Psd2CertInfo psd2CertInfo, RolesOfPsp roles) {
+                    if (roles == null) {
+                        return Collections.EMPTY_SET;
+                    }
+                    return roles.getRolesOfPsp().stream().map(r -> new PSD2GrantType(r)).collect(Collectors.toSet());
+                }
             })
             .collectFromHeader(CertificateHeaderFormat.PEM)
             .headerName("x-cert")
             .build();
 
-    private APIKeyCollector apiKeyCollector = APIKeyCollector .<User>builder()
-                .collectorName("API-key-for-test")
-                .apiKeyExtractor(req -> req.getParameter("key"))
-                .apiKeyValidator(apiKey -> new User("toto", "",
-                        Stream.of(new SimpleGrantedAuthority("repo-32")).collect(Collectors.toSet())))
-                .authoritiesCollector(user -> new HashSet<>(user.getAuthorities()))
-                .usernameCollector(User::getUsername)
-                .build();
+    private final APIKeyCollector apiKeyCollector = APIKeyCollector.<User>builder()
+            .collectorName("API-key-for-test")
+            .apiKeyExtractor(req -> req.getParameter("key"))
+            .apiKeyValidator(apiKey -> new User("toto", "",
+                    Stream.of(new SimpleGrantedAuthority("repo-32")).collect(Collectors.toSet())))
+            .authoritiesCollector(user -> new HashSet<>(user.getAuthorities()))
+            .usernameCollector(User::getUsername)
+            .build();
 
-    private StatelessAccessTokenCollector statelessAccessTokenCollector = StatelessAccessTokenCollector.builder()
+    private final StatelessAccessTokenCollector statelessAccessTokenCollector = StatelessAccessTokenCollector.builder()
             .collectorName("stateless-access-token-for-test")
             .tokenValidator((token, currentAuthentication) -> JWTParser.parse(token))
             .build();
@@ -153,7 +184,8 @@ public class AuthCollectorFilterTest {
         HttpServletRequest mockedRequest = Mockito.mock(HttpServletRequest.class);
         RequestContextHolder.setRequestAttributes(new ServletWebRequest(mockedRequest));
 
-        authCollectorFilter.doFilterInternal(mockedRequest, Mockito.mock(HttpServletResponse.class), Mockito.mock(FilterChain.class));
+        authCollectorFilter.doFilterInternal(mockedRequest, Mockito.mock(HttpServletResponse.class),
+                Mockito.mock(FilterChain.class));
 
         //Then
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -181,6 +213,7 @@ public class AuthCollectorFilterTest {
                 apiKeyCollector,
                 staticUserCollector
         ).collect(Collectors.toList());
+
         AuthCollectorFilter authCollectorFilter = AuthCollectorFilter
                 .builder()
                 .authenticationCollectors(authCollectors)
@@ -191,9 +224,11 @@ public class AuthCollectorFilterTest {
         RequestContextHolder.setRequestAttributes(new ServletWebRequest(mockedRequest));
 
         when(mockedRequest.getCookies()).thenReturn(new Cookie[]{new Cookie("sso",
-                "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0b3RvIiwiZ3JvdXAiOlsiYWRtaW4iLCJjbHViRmFsYWZlbEtpbmciXX0.3JsO3h2HEZSJy4sX45RfKfwzPIWvdgt1LbHeEjExWZY")});
+                "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0b3RvIiwiZ3JvdXAiOlsiYWRtaW4iLCJjbHViRmFsYWZlbEt" +
+                        "pbmciXX0.3JsO3h2HEZSJy4sX45RfKfwzPIWvdgt1LbHeEjExWZY")});
 
-        authCollectorFilter.doFilterInternal(mockedRequest, Mockito.mock(HttpServletResponse.class), Mockito.mock(FilterChain.class));
+        authCollectorFilter.doFilterInternal(mockedRequest, Mockito.mock(HttpServletResponse.class),
+                Mockito.mock(FilterChain.class));
 
         //Then
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -235,12 +270,16 @@ public class AuthCollectorFilterTest {
         RequestContextHolder.setRequestAttributes(new ServletWebRequest(mockedRequest));
 
         when(mockedRequest.getCookies()).thenReturn(new Cookie[]{new Cookie("sso",
-                "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0b3RvIiwiZ3JvdXAiOlsiYWRtaW4iLCJjbHViRmFsYWZlbEtpbmciXX0.3JsO3h2HEZSJy4sX45RfKfwzPIWvdgt1LbHeEjExWZY")});
+                "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0b3RvIiwiZ3JvdXAiOlsiYWRtaW4iLCJjbHViRmFsYWZlbEt" +
+                        "pbmciXX0.3JsO3h2HEZSJy4sX45RfKfwzPIWvdgt1LbHeEjExWZY")});
         when(mockedRequest.getHeader("Authorization")).thenReturn(
-                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzY29wZSI6WyJhY2NvdW50cyIsInBheW1lbnRzIl0sImNuZiI6eyJ4NXQjUzI1NiI6IjUzNjlhYmUzYjEyMDI1Y2RkZDk4NDUwZTViZWYyNTUwYzAzNmNhNzkifX0.dfrByVbVWSKPi0_OQQowaV2M9k_miFhNWdAL_VrQpXs");
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzY29wZSI6WyJhY2NvdW50cyIsInBheW1lbnRzIl0sImNuZiI6e" +
+                        "yJ4NXQjUzI1NiI6IjUzNjlhYmUzYjEyMDI1Y2RkZDk4NDUwZTViZWYyNTUwYzAzNmNhNzkifX0.dfrByVbVWSKPi0" +
+                        "_OQQowaV2M9k_miFhNWdAL_VrQpXs");
 
 
-        authCollectorFilter.doFilterInternal(mockedRequest, Mockito.mock(HttpServletResponse.class), Mockito.mock(FilterChain.class));
+        authCollectorFilter.doFilterInternal(mockedRequest, Mockito.mock(HttpServletResponse.class),
+                Mockito.mock(FilterChain.class));
 
         //Then
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -285,10 +324,13 @@ public class AuthCollectorFilterTest {
 
         when(mockedRequest.getHeader("x-cert")).thenReturn(testCertificate);
         when(mockedRequest.getHeader("Authorization")).thenReturn(
-                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzY29wZSI6WyJhY2NvdW50cyIsInBheW1lbnRzIl0sImNuZiI6eyJ4NXQjUzI1NiI6IjUzNjlhYmUzYjEyMDI1Y2RkZDk4NDUwZTViZWYyNTUwYzAzNmNhNzkifX0.dfrByVbVWSKPi0_OQQowaV2M9k_miFhNWdAL_VrQpXs");
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzY29wZSI6WyJhY2NvdW50cyIsInBheW1lbnRzIl0sImNuZiI6" +
+                        "eyJ4NXQjUzI1NiI6IjUzNjlhYmUzYjEyMDI1Y2RkZDk4NDUwZTViZWYyNTUwYzAzNmNhNzkifX0.dfrByVbVWSKP" +
+                        "i0_OQQowaV2M9k_miFhNWdAL_VrQpXs");
 
 
-        authCollectorFilter.doFilterInternal(mockedRequest, Mockito.mock(HttpServletResponse.class), Mockito.mock(FilterChain.class));
+        authCollectorFilter.doFilterInternal(mockedRequest, Mockito.mock(HttpServletResponse.class),
+                Mockito.mock(FilterChain.class));
 
         //Then
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -332,12 +374,16 @@ public class AuthCollectorFilterTest {
 
         when(mockedRequest.getHeader("x-cert")).thenReturn(testCertificate);
         when(mockedRequest.getHeader("Authorization")).thenReturn(
-                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzY29wZSI6WyJhY2NvdW50cyIsInBheW1lbnRzIl0sImNuZiI6eyJ4NXQjUzI1NiI6IjUzNjlhYmUzYjEyMDI1Y2RkZDk4NDUwZTViZWYyNTUwYzAzNmNhNzkifX0.dfrByVbVWSKPi0_OQQowaV2M9k_miFhNWdAL_VrQpXs");
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzY29wZSI6WyJhY2NvdW50cyIsInBheW1lbnRzIl0sImNuZiI6" +
+                        "eyJ4NXQjUzI1NiI6IjUzNjlhYmUzYjEyMDI1Y2RkZDk4NDUwZTViZWYyNTUwYzAzNmNhNzkifX0.dfrByVbVWSKP" +
+                        "i0_OQQowaV2M9k_miFhNWdAL_VrQpXs");
         when(mockedRequest.getCookies()).thenReturn(new Cookie[]{new Cookie("sso",
-                "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0b3RvIiwiZ3JvdXAiOlsiYWRtaW4iLCJjbHViRmFsYWZlbEtpbmciXX0.3JsO3h2HEZSJy4sX45RfKfwzPIWvdgt1LbHeEjExWZY")});
+                "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0b3RvIiwiZ3JvdXAiOlsiYWRtaW4iLCJjbHViRmFsYWZlbEtp" +
+                        "bmciXX0.3JsO3h2HEZSJy4sX45RfKfwzPIWvdgt1LbHeEjExWZY")});
 
 
-        authCollectorFilter.doFilterInternal(mockedRequest, Mockito.mock(HttpServletResponse.class), Mockito.mock(FilterChain.class));
+        authCollectorFilter.doFilterInternal(mockedRequest, Mockito.mock(HttpServletResponse.class),
+                Mockito.mock(FilterChain.class));
 
         //Then
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -383,12 +429,16 @@ public class AuthCollectorFilterTest {
 
         when(mockedRequest.getHeader("x-cert")).thenReturn(testCertificate);
         when(mockedRequest.getHeader("Authorization")).thenReturn(
-                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzY29wZSI6WyJhY2NvdW50cyIsInBheW1lbnRzIl0sImNuZiI6eyJ4NXQjUzI1NiI6IjUzNjlhYmUzYjEyMDI1Y2RkZDk4NDUwZTViZWYyNTUwYzAzNmNhNzkifX0.dfrByVbVWSKPi0_OQQowaV2M9k_miFhNWdAL_VrQpXs");
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzY29wZSI6WyJhY2NvdW50cyIsInBheW1lbnRzIl0sImNuZiI6e" +
+                        "yJ4NXQjUzI1NiI6IjUzNjlhYmUzYjEyMDI1Y2RkZDk4NDUwZTViZWYyNTUwYzAzNmNhNzkifX0.dfrByVbVWSKPi0" +
+                        "_OQQowaV2M9k_miFhNWdAL_VrQpXs");
         when(mockedRequest.getCookies()).thenReturn(new Cookie[]{new Cookie("sso",
-                "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0b3RvIiwiZ3JvdXAiOlsiYWRtaW4iLCJjbHViRmFsYWZlbEtpbmciXX0.3JsO3h2HEZSJy4sX45RfKfwzPIWvdgt1LbHeEjExWZY")});
+                "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0b3RvIiwiZ3JvdXAiOlsiYWRtaW4iLCJjbHViRmFsYWZlbEtp" +
+                        "bmciXX0.3JsO3h2HEZSJy4sX45RfKfwzPIWvdgt1LbHeEjExWZY")});
 
 
-        authCollectorFilter.doFilterInternal(mockedRequest, Mockito.mock(HttpServletResponse.class), Mockito.mock(FilterChain.class));
+        authCollectorFilter.doFilterInternal(mockedRequest, Mockito.mock(HttpServletResponse.class),
+                Mockito.mock(FilterChain.class));
 
         //Then
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -433,9 +483,12 @@ public class AuthCollectorFilterTest {
 
         when(mockedRequest.getHeader("x-cert")).thenReturn(testCertificate);
         when(mockedRequest.getHeader("Authorization")).thenReturn(
-                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzY29wZSI6WyJhY2NvdW50cyIsInBheW1lbnRzIl0sImNuZiI6eyJ4NXQjUzI1NiI6IjUzNjlhYmUzYjEyMDI1Y2RkZDk4NDUwZTViZWYyNTUwYzAzNmNhNzkifX0.dfrByVbVWSKPi0_OQQowaV2M9k_miFhNWdAL_VrQpXs");
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzY29wZSI6WyJhY2NvdW50cyIsInBheW1lbnRzIl0sImNuZiI6e" +
+                        "yJ4NXQjUzI1NiI6IjUzNjlhYmUzYjEyMDI1Y2RkZDk4NDUwZTViZWYyNTUwYzAzNmNhNzkifX0.dfrByVbVWSKPi0" +
+                        "_OQQowaV2M9k_miFhNWdAL_VrQpXs");
 
-        authCollectorFilter.doFilterInternal(mockedRequest, Mockito.mock(HttpServletResponse.class), Mockito.mock(FilterChain.class));
+        authCollectorFilter.doFilterInternal(mockedRequest, Mockito.mock(HttpServletResponse.class),
+                Mockito.mock(FilterChain.class));
 
         //Then
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -474,7 +527,8 @@ public class AuthCollectorFilterTest {
         HttpServletRequest mockedRequest = Mockito.mock(HttpServletRequest.class);
         RequestContextHolder.setRequestAttributes(new ServletWebRequest(mockedRequest));
 
-        authCollectorFilter.doFilterInternal(mockedRequest, Mockito.mock(HttpServletResponse.class), Mockito.mock(FilterChain.class));
+        authCollectorFilter.doFilterInternal(mockedRequest, Mockito.mock(HttpServletResponse.class),
+                Mockito.mock(FilterChain.class));
 
         //Then
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
