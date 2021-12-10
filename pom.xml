@@ -48,7 +48,7 @@
 		<java.version>11</java.version>
 		<version.javadoc.plugin>3.0.1</version.javadoc.plugin>
 		<apache.httpmime.version>4.5.13</apache.httpmime.version>
-		<apache.httpasyncclient.version>4.1.4</apache.httpasyncclient.version>
+		<apache.httpasyncclient.version>4.1.5</apache.httpasyncclient.version>
 		<lombok.version>1.18.20</lombok.version>
 		<nimbusds.version>8.20</nimbusds.version>
 		<eidas.sdk.version>1.24</eidas.sdk.version>
